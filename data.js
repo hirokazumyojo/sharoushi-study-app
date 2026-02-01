@@ -1,11 +1,11 @@
 // ========================================
 // 社労士合格ナビ 2026 - データ定義
+// 工藤プロジェクト Swing-by セミナー対応
 // ========================================
 
 // 試験情報
 const EXAM_INFO = {
     year: 2026,
-    // 例年8月第4日曜日（仮）
     examDate: new Date('2026-08-23'),
     passingCriteria: {
         selection: { total: 25, perSubject: 3 },
@@ -13,54 +13,126 @@ const EXAM_INFO = {
     }
 };
 
-// 学習フェーズ定義
+// 学習フェーズ定義（工藤プロジェクトのスケジュールに合わせて調整）
 const PHASES = [
     {
         id: 1,
-        name: '基礎構築期',
+        name: '年金BASIS・ツールボックス期',
         badge: 'Phase 1',
-        period: '2月〜4月',
-        startMonth: 2,
-        endMonth: 4,
-        goal: '講座のインプットを完了し、全科目の基礎を理解'
+        period: '9月〜12月',
+        startMonth: 9,
+        endMonth: 12,
+        startYear: 2025,
+        goal: '年金BASIS完了、ツールボックス編で横断整理と社会保険科目の基礎固め'
     },
     {
         id: 2,
-        name: '応用発展期',
+        name: 'スイングバイ期',
         badge: 'Phase 2',
-        period: '5月〜6月',
-        startMonth: 5,
-        endMonth: 6,
-        goal: '全科目完了 + 過去問演習開始'
+        period: '1月〜4月',
+        startMonth: 1,
+        endMonth: 4,
+        startYear: 2026,
+        goal: '労働科目のインプット完了、本論編の全範囲を網羅'
     },
     {
         id: 3,
-        name: '直前完成期',
+        name: '直前対策期',
         badge: 'Phase 3',
-        period: '7月〜8月',
-        startMonth: 7,
+        period: '5月〜8月',
+        startMonth: 5,
         endMonth: 8,
-        goal: '弱点克服 + 模試で実力確認 + 本番対応力'
+        startYear: 2026,
+        goal: '改正法・白書対策、答練・模試で実力確認、弱点克服'
     }
 ];
 
-// 科目データ（工藤プロジェクトのカリキュラム順）
-const SUBJECTS = [
-    // ===== ツールボックス =====
+// ========================================
+// 講義シリーズ定義（工藤プロジェクト2026）
+// ========================================
+const LECTURE_SERIES = [
+    // ===== 年金BASIS =====
+    {
+        id: 'pension_basis',
+        seriesName: '年金BASIS',
+        category: 'basis',
+        lectures: [
+            { id: 'pb1', name: '公的年金の給付と役割及び財政等', count: 4, deliveryDate: '2025-09-01', webStart: '2025-10-06' },
+            { id: 'pb2', name: '社会保障制度の意義と沿革', count: 3, deliveryDate: '2025-09-01', webStart: '2025-11-10' }
+        ],
+        totalLectures: 7,
+        order: 1
+    },
+    // ===== ツールボックス編 =====
     {
         id: 'toolbox',
-        name: 'ツールボックス編',
-        shortName: 'TB',
-        category: 'foundation',
-        categoryLabel: '基礎',
-        lectures: 5,
-        selectionPoints: 0,
-        multiplePoints: 0,
-        difficulty: 1,
-        priority: 'foundation',
-        order: 1,
-        description: '厚生労働白書、社会保障制度の成り立ち'
+        seriesName: 'ツールボックス編',
+        category: 'toolbox',
+        lectures: [
+            { id: 'tb1', name: '基本事項の横断', count: 7, deliveryDate: '2025-09-29', webStart: '2025-11-17' },
+            { id: 'tb2', name: '健康保険法', count: 5, deliveryDate: '2025-11-04', webStart: '2025-12-08' },
+            { id: 'tb3', name: '社会保険一般常識', count: 3, deliveryDate: '2025-11-17', webStart: '2026-01-05' },
+            { id: 'tb4', name: '年金コントラスト/メインフレーム/公的年金法', count: 10, deliveryDate: '2025-12-01', webStart: '2026-01-13' }
+        ],
+        totalLectures: 25,
+        order: 2
     },
+    // ===== スイングバイ編（本論編） =====
+    {
+        id: 'swingby',
+        seriesName: 'スイングバイ編',
+        category: 'swingby',
+        lectures: [
+            { id: 'sb1', name: '労働に関する一般常識①', count: 1, deliveryDate: '2026-01-19', webStart: '2026-02-24' },
+            { id: 'sb2', name: '労働基準法', count: 6, deliveryDate: '2026-01-19', webStart: '2026-03-02' },
+            { id: 'sb3', name: '労働に関する一般常識②/Swing-by改正・白書', count: 2, deliveryDate: '2026-01-19', webStart: '2026-03-16' },
+            { id: 'sb4', name: '労働者災害補償保険法', count: 5, deliveryDate: '2026-02-16', webStart: '2026-03-23' },
+            { id: 'sb5', name: '労働に関する一般常識③', count: 3, deliveryDate: '2026-01-19', webStart: '2026-04-13' },
+            { id: 'sb6', name: '雇用保険法', count: 5, deliveryDate: '2026-03-16', webStart: '2026-04-27' },
+            { id: 'sb7', name: '労働保険徴収法', count: 3, deliveryDate: '2026-04-06', webStart: '2026-05-11' },
+            { id: 'sb8', name: '労働安全衛生法', count: 3, deliveryDate: '2026-04-13', webStart: '2026-06-01' }
+        ],
+        totalLectures: 28,
+        order: 3
+    },
+    // ===== 直前編 =====
+    {
+        id: 'final',
+        seriesName: '直前編',
+        category: 'final',
+        lectures: [
+            { id: 'fn1', name: '改正法攻略講座', count: 2, deliveryDate: '2026-05-07', webStart: '2026-05-07' },
+            { id: 'fn2', name: '実戦答練', count: 7, deliveryDate: null, webStart: null },
+            { id: 'fn3', name: '白書・統計攻略講座', count: 2, deliveryDate: '2026-06-01', webStart: '2026-06-01' },
+            { id: 'fn4', name: '工藤プロジェクト公開講義', count: 1, deliveryDate: '2026-06-08', webStart: '2026-06-08' },
+            { id: 'fn5', name: 'サマリー編', count: 4, deliveryDate: '2026-06-29', webStart: '2026-06-29' },
+            { id: 'fn6', name: '全日本社労士公開模試', count: 3, deliveryDate: '2026-05-07', webStart: '2026-05-07' }
+        ],
+        totalLectures: 19,
+        order: 4
+    },
+    // ===== 実力完成講座OPUS =====
+    {
+        id: 'opus',
+        seriesName: '実力完成講座OPUS',
+        category: 'opus',
+        lectures: [
+            { id: 'op1', name: 'OPUS #1〜#4', count: 4, deliveryDate: '2025-09-29', webStart: '2025-09-29' },
+            { id: 'op2', name: 'OPUS #5〜#8', count: 4, deliveryDate: '2025-12-22', webStart: '2025-12-22' },
+            { id: 'op3', name: 'OPUS #9〜#10', count: 2, deliveryDate: '2026-04-06', webStart: '2026-04-06' }
+        ],
+        totalLectures: 10,
+        order: 5
+    }
+];
+
+// 総講義数の計算
+const TOTAL_LECTURES = LECTURE_SERIES.reduce((sum, series) => sum + series.totalLectures, 0); // 89回
+
+// ========================================
+// 科目データ（試験科目として管理）
+// ========================================
+const SUBJECTS = [
     // ===== 社会保険関係 =====
     {
         id: 'health',
@@ -68,41 +140,55 @@ const SUBJECTS = [
         shortName: '健保',
         category: 'social',
         categoryLabel: '社会保険',
-        lectures: 12,
+        relatedLectures: ['tb2'],
         selectionPoints: 5,
         multiplePoints: 10,
         difficulty: 3,
         priority: 'high',
-        order: 2,
+        order: 1,
         description: '医療保険制度の基本、給付内容'
     },
     {
-        id: 'pension',
-        name: '年金法（国年・厚年）',
-        shortName: '年金',
+        id: 'pension_np',
+        name: '国民年金法',
+        shortName: '国年',
         category: 'social',
         categoryLabel: '社会保険',
-        lectures: 25,
-        selectionPoints: 10,
-        multiplePoints: 20,
+        relatedLectures: ['pb1', 'pb2', 'tb4'],
+        selectionPoints: 5,
+        multiplePoints: 10,
+        difficulty: 5,
+        priority: 'critical',
+        order: 2,
+        description: '基礎年金、第1号〜第3号被保険者'
+    },
+    {
+        id: 'pension_ep',
+        name: '厚生年金保険法',
+        shortName: '厚年',
+        category: 'social',
+        categoryLabel: '社会保険',
+        relatedLectures: ['pb1', 'pb2', 'tb4'],
+        selectionPoints: 5,
+        multiplePoints: 10,
         difficulty: 5,
         priority: 'critical',
         order: 3,
-        description: '国民年金・厚生年金を一体学習、最重要科目'
+        description: '報酬比例年金、在職老齢年金'
     },
     {
         id: 'social_general',
-        name: '社会保険一般常識',
+        name: '社会保険に関する一般常識',
         shortName: '社一',
         category: 'social',
         categoryLabel: '社会保険',
-        lectures: 6,
+        relatedLectures: ['tb3'],
         selectionPoints: 5,
-        multiplePoints: 0,
+        multiplePoints: 5,
         difficulty: 4,
         priority: 'high',
-        order: 9,
-        description: '介護保険法、国民健康保険法、統計など'
+        order: 4,
+        description: '介護保険法、国民健康保険法、各種統計'
     },
     // ===== 労働関係 =====
     {
@@ -111,12 +197,12 @@ const SUBJECTS = [
         shortName: '労基',
         category: 'labor',
         categoryLabel: '労働関係',
-        lectures: 12,
+        relatedLectures: ['sb2'],
         selectionPoints: 5,
         multiplePoints: 7,
         difficulty: 3,
         priority: 'high',
-        order: 4,
+        order: 5,
         description: '労働契約、賃金、労働時間の基本'
     },
     {
@@ -125,12 +211,12 @@ const SUBJECTS = [
         shortName: '安衛',
         category: 'labor',
         categoryLabel: '労働関係',
-        lectures: 5,
+        relatedLectures: ['sb8'],
         selectionPoints: 0,
         multiplePoints: 3,
         difficulty: 2,
         priority: 'normal',
-        order: 5,
+        order: 6,
         description: '職場の安全衛生管理'
     },
     {
@@ -139,12 +225,12 @@ const SUBJECTS = [
         shortName: '労災',
         category: 'labor',
         categoryLabel: '労働関係',
-        lectures: 8,
+        relatedLectures: ['sb4'],
         selectionPoints: 5,
         multiplePoints: 7,
         difficulty: 2,
         priority: 'normal',
-        order: 6,
+        order: 7,
         description: '業務災害・通勤災害の給付'
     },
     {
@@ -153,12 +239,12 @@ const SUBJECTS = [
         shortName: '雇用',
         category: 'labor',
         categoryLabel: '労働関係',
-        lectures: 10,
+        relatedLectures: ['sb6'],
         selectionPoints: 5,
         multiplePoints: 7,
         difficulty: 2,
         priority: 'normal',
-        order: 7,
+        order: 8,
         description: '失業給付、育児・介護休業給付'
     },
     {
@@ -167,29 +253,38 @@ const SUBJECTS = [
         shortName: '徴収',
         category: 'labor',
         categoryLabel: '労働関係',
-        lectures: 5,
+        relatedLectures: ['sb7'],
         selectionPoints: 0,
         multiplePoints: 6,
         difficulty: 2,
         priority: 'normal',
-        order: 8,
+        order: 9,
         description: '労働保険料の申告・納付'
     },
     {
         id: 'labor_general',
-        name: '労務管理一般常識',
+        name: '労働に関する一般常識',
         shortName: '労一',
         category: 'labor',
         categoryLabel: '労働関係',
-        lectures: 7,
+        relatedLectures: ['sb1', 'sb3', 'sb5'],
         selectionPoints: 5,
         multiplePoints: 5,
         difficulty: 4,
         priority: 'high',
         order: 10,
-        description: '労働経済、労働法規、統計など'
+        description: '労働経済、労働法規、白書・統計'
     }
 ];
+
+// 講義シリーズのカテゴリラベル
+const SERIES_CATEGORIES = {
+    basis: { label: '年金BASIS', color: '#805ad5', bgColor: '#e9d8fd' },
+    toolbox: { label: 'ツールボックス', color: '#3182ce', bgColor: '#bee3f8' },
+    swingby: { label: 'スイングバイ', color: '#dd6b20', bgColor: '#feebc8' },
+    final: { label: '直前編', color: '#e53e3e', bgColor: '#fed7d7' },
+    opus: { label: 'OPUS', color: '#38a169', bgColor: '#c6f6d5' }
+};
 
 // デフォルトの今日のタスク
 const DEFAULT_TASKS = [
@@ -211,7 +306,7 @@ const SAMPLE_FLASHCARDS = [
     },
     {
         id: 2,
-        subjectId: 'pension',
+        subjectId: 'pension_np',
         question: '老齢基礎年金の受給資格期間は？',
         answer: '10年（120月）以上の保険料納付済期間等が必要',
         status: 'new',
@@ -297,7 +392,7 @@ const LAW_AMENDMENTS_2026 = [
             '高齢者の就労意欲向上が目的',
             '年金と賃金の合計が基準額を超える場合に年金が減額'
         ],
-        relatedSubjects: ['pension'],
+        relatedSubjects: ['pension_ep'],
         source: 'https://www.mhlw.go.jp/'
     },
     {
@@ -369,3 +464,6 @@ const AMENDMENT_PRIORITY = {
     high: { label: '重要', color: '#dd6b20', bgColor: '#feebc8' },
     medium: { label: '注目', color: '#3182ce', bgColor: '#bee3f8' }
 };
+
+// 配信終了日
+const DELIVERY_END_DATE = new Date('2026-08-31');

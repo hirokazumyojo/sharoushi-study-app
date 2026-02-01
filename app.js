@@ -480,8 +480,23 @@ class SharoushiApp {
 
     renderPhase() {
         const now = new Date();
+        const currentYear = now.getFullYear();
         const currentMonth = now.getMonth() + 1;
-        const phase = PHASES.find(p => currentMonth >= p.startMonth && currentMonth <= p.endMonth) || PHASES[0];
+
+        // 年をまたいだフェーズ判定
+        let phase = PHASES[0]; // デフォルト
+        for (const p of PHASES) {
+            const phaseYear = p.startYear || 2026;
+            if (currentYear === phaseYear && currentMonth >= p.startMonth && currentMonth <= p.endMonth) {
+                phase = p;
+                break;
+            } else if (currentYear === 2025 && phaseYear === 2025 && currentMonth >= p.startMonth) {
+                phase = p;
+            } else if (currentYear === 2026 && phaseYear === 2026 && currentMonth >= p.startMonth && currentMonth <= p.endMonth) {
+                phase = p;
+                break;
+            }
+        }
 
         document.getElementById('currentPhase').textContent = phase.badge;
         document.getElementById('phaseName').textContent = phase.name;
