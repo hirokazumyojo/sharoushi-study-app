@@ -82,13 +82,13 @@ function initAuth() {
 
     const loginScreen = document.getElementById('loginScreen');
     const setupScreen = document.getElementById('setupScreen');
-    const app = document.getElementById('app');
+    const appElement = document.getElementById('app');
 
     // セッションが有効ならアプリを表示
     if (auth.isSessionValid()) {
         loginScreen.style.display = 'none';
         setupScreen.style.display = 'none';
-        app.style.display = 'block';
+        appElement.style.display = 'block';
         return true;
     }
 
@@ -117,8 +117,9 @@ function initAuth() {
 
             auth.setPassword(newPass);
             setupScreen.style.display = 'none';
-            app.style.display = 'block';
+            appElement.style.display = 'block';
             window.sharoushiApp = new SharoushiApp();
+            window.app = window.sharoushiApp;
         });
 
         return false;
@@ -136,8 +137,9 @@ function initAuth() {
         if (auth.verifyPassword(password)) {
             auth.createSession();
             loginScreen.style.display = 'none';
-            app.style.display = 'block';
+            appElement.style.display = 'block';
             window.sharoushiApp = new SharoushiApp();
+            window.app = window.sharoushiApp;
         } else {
             errorEl.style.display = 'block';
             document.getElementById('loginPassword').value = '';
@@ -151,6 +153,7 @@ function initAuth() {
 document.addEventListener('DOMContentLoaded', () => {
     if (initAuth()) {
         window.sharoushiApp = new SharoushiApp();
+        window.app = window.sharoushiApp; // グローバル参照用
     }
 });
 
@@ -160,6 +163,7 @@ class SharoushiApp {
         this.STORAGE_KEYS = {
             studyRecords: 'sharoushi_study_records',
             subjectProgress: 'sharoushi_subject_progress',
+            lectureSeriesProgress: 'sharoushi_lecture_series_progress',
             flashcards: 'sharoushi_flashcards',
             audioFiles: 'sharoushi_audio_files',
             tasks: 'sharoushi_tasks',
@@ -218,9 +222,20 @@ class SharoushiApp {
         // ローカルストレージからデータを読み込み
         this.state.studyRecords = this.getStorage(this.STORAGE_KEYS.studyRecords) || [];
         this.state.subjectProgress = this.getStorage(this.STORAGE_KEYS.subjectProgress) || this.initSubjectProgress();
+        this.state.lectureSeriesProgress = this.getStorage(this.STORAGE_KEYS.lectureSeriesProgress) || this.initLectureSeriesProgress();
         this.state.flashcards = this.getStorage(this.STORAGE_KEYS.flashcards) || [...SAMPLE_FLASHCARDS];
         this.state.audioFiles = this.getStorage(this.STORAGE_KEYS.audioFiles) || [];
         this.state.tasks = this.getStorage(this.STORAGE_KEYS.tasks) || [...DEFAULT_TASKS];
+    }
+
+    initLectureSeriesProgress() {
+        const progress = {};
+        LECTURE_SERIES.forEach(series => {
+            progress[series.id] = {
+                completedLectures: 0
+            };
+        });
+        return progress;
     }
 
     initSubjectProgress() {
@@ -413,6 +428,7 @@ class SharoushiApp {
         this.renderWeeklyStats();
         this.renderPhase();
         this.renderOverallProgress();
+        this.renderLectureSeriesProgress();
         this.renderRiskList();
         this.renderTodayTasks();
         this.renderAmendments();
@@ -505,9 +521,8 @@ class SharoushiApp {
     }
 
     renderOverallProgress() {
-        const totalLectures = SUBJECTS.reduce((sum, s) => sum + s.lectures, 0);
-        const completedLectures = Object.values(this.state.subjectProgress)
-            .reduce((sum, p) => sum + p.completedLectures, 0);
+        const totalLectures = TOTAL_LECTURES; // 89回
+        const completedLectures = this.getCompletedLecturesCount();
         const percent = totalLectures > 0 ? Math.round((completedLectures / totalLectures) * 100) : 0;
 
         document.getElementById('overallPercent').textContent = percent;
@@ -522,6 +537,86 @@ class SharoushiApp {
         const circumference = 2 * Math.PI * 45;
         const offset = circumference - (percent / 100) * circumference;
         circle.style.strokeDashoffset = offset;
+    }
+
+    getCompletedLecturesCount() {
+        // 講義シリーズごとの完了数を合計
+        const seriesProgress = this.state.lectureSeriesProgress || {};
+        return Object.values(seriesProgress).reduce((sum, p) => sum + (p.completedLectures || 0), 0);
+    }
+
+    renderLectureSeriesProgress() {
+        const container = document.getElementById('lectureSeriesList');
+        if (!container) return;
+
+        // 講義シリーズの進捗を初期化（なければ）
+        if (!this.state.lectureSeriesProgress) {
+            this.state.lectureSeriesProgress = {};
+            LECTURE_SERIES.forEach(series => {
+                this.state.lectureSeriesProgress[series.id] = {
+                    completedLectures: 0
+                };
+            });
+        }
+
+        container.innerHTML = LECTURE_SERIES.map(series => {
+            const progress = this.state.lectureSeriesProgress[series.id] || { completedLectures: 0 };
+            const completed = progress.completedLectures;
+            const total = series.totalLectures;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            const categoryInfo = SERIES_CATEGORIES[series.category] || { label: series.category, color: '#666', bgColor: '#eee' };
+
+            return `
+                <div class="lecture-series-item" data-id="${series.id}">
+                    <div class="series-header">
+                        <span class="series-badge" style="background: ${categoryInfo.bgColor}; color: ${categoryInfo.color};">
+                            ${categoryInfo.label}
+                        </span>
+                        <span class="series-count">${completed}/${total}回</span>
+                    </div>
+                    <div class="series-name">${series.seriesName}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percent}%; background: ${categoryInfo.color};"></div>
+                    </div>
+                    <div class="series-actions">
+                        <button class="series-btn" onclick="app.incrementSeriesLecture('${series.id}')">+1</button>
+                        <button class="series-btn decrement" onclick="app.decrementSeriesLecture('${series.id}')">-1</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    incrementSeriesLecture(seriesId) {
+        const series = LECTURE_SERIES.find(s => s.id === seriesId);
+        if (!series) return;
+
+        if (!this.state.lectureSeriesProgress) {
+            this.state.lectureSeriesProgress = {};
+        }
+        if (!this.state.lectureSeriesProgress[seriesId]) {
+            this.state.lectureSeriesProgress[seriesId] = { completedLectures: 0 };
+        }
+
+        const progress = this.state.lectureSeriesProgress[seriesId];
+        if (progress.completedLectures < series.totalLectures) {
+            progress.completedLectures++;
+            this.setStorage('sharoushi_lecture_series_progress', this.state.lectureSeriesProgress);
+            this.renderLectureSeriesProgress();
+            this.renderOverallProgress();
+        }
+    }
+
+    decrementSeriesLecture(seriesId) {
+        if (!this.state.lectureSeriesProgress || !this.state.lectureSeriesProgress[seriesId]) return;
+
+        const progress = this.state.lectureSeriesProgress[seriesId];
+        if (progress.completedLectures > 0) {
+            progress.completedLectures--;
+            this.setStorage('sharoushi_lecture_series_progress', this.state.lectureSeriesProgress);
+            this.renderLectureSeriesProgress();
+            this.renderOverallProgress();
+        }
     }
 
     renderRiskList() {
@@ -604,11 +699,15 @@ class SharoushiApp {
         }
 
         subjectList.innerHTML = subjects.map(subject => {
-            const progress = this.state.subjectProgress[subject.id];
-            const lectureProgress = subject.lectures > 0
-                ? Math.round((progress.completedLectures / subject.lectures) * 100)
-                : 0;
+            const progress = this.state.subjectProgress[subject.id] || {
+                correctRate: 0,
+                totalStudyMinutes: 0,
+                masteryLevel: 1
+            };
             const stars = '★'.repeat(progress.masteryLevel) + '☆'.repeat(4 - progress.masteryLevel);
+
+            // 配点情報を表示
+            const totalPoints = subject.selectionPoints + subject.multiplePoints;
 
             return `
                 <div class="subject-card" data-id="${subject.id}">
@@ -625,8 +724,8 @@ class SharoushiApp {
                     </div>
                     <div class="subject-stats">
                         <div class="subject-stat">
-                            <div class="subject-stat-value">${progress.completedLectures}/${subject.lectures}</div>
-                            <div class="subject-stat-label">講義</div>
+                            <div class="subject-stat-value">${totalPoints}</div>
+                            <div class="subject-stat-label">配点</div>
                         </div>
                         <div class="subject-stat">
                             <div class="subject-stat-value">${progress.correctRate}%</div>
@@ -637,19 +736,17 @@ class SharoushiApp {
                             <div class="subject-stat-label">学習時間</div>
                         </div>
                     </div>
+                    <div class="subject-description">${subject.description}</div>
                     <div class="subject-progress">
                         <div class="subject-progress-header">
-                            <span class="subject-progress-label">講義進捗</span>
-                            <span class="subject-progress-value">${lectureProgress}%</span>
+                            <span class="subject-progress-label">習熟度</span>
+                            <span class="subject-progress-value">${progress.correctRate}%</span>
                         </div>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${lectureProgress}%"></div>
+                            <div class="progress-fill" style="width: ${progress.correctRate}%"></div>
                         </div>
                     </div>
                     <div class="subject-actions">
-                        <button class="subject-btn primary" onclick="app.incrementLecture('${subject.id}')">
-                            講義完了 +1
-                        </button>
                         <button class="subject-btn secondary" onclick="app.updateCorrectRate('${subject.id}')">
                             正答率更新
                         </button>
@@ -657,19 +754,6 @@ class SharoushiApp {
                 </div>
             `;
         }).join('');
-    }
-
-    incrementLecture(subjectId) {
-        const subject = SUBJECTS.find(s => s.id === subjectId);
-        const progress = this.state.subjectProgress[subjectId];
-
-        if (progress.completedLectures < subject.lectures) {
-            progress.completedLectures++;
-            progress.lastStudied = new Date().toISOString();
-            this.updateMasteryLevel(subjectId);
-            this.setStorage(this.STORAGE_KEYS.subjectProgress, this.state.subjectProgress);
-            this.renderSubjects(document.querySelector('.filter-btn.active').dataset.filter);
-        }
     }
 
     updateCorrectRate(subjectId) {
@@ -685,14 +769,14 @@ class SharoushiApp {
 
     updateMasteryLevel(subjectId) {
         const progress = this.state.subjectProgress[subjectId];
-        const subject = SUBJECTS.find(s => s.id === subjectId);
-        const lectureProgress = subject.lectures > 0 ? progress.completedLectures / subject.lectures : 0;
+        if (!progress) return;
 
-        if (progress.correctRate >= 90 && lectureProgress >= 1) {
+        // 正答率に基づいて習熟度を判定
+        if (progress.correctRate >= 90) {
             progress.masteryLevel = 4;
-        } else if (progress.correctRate >= 70 && lectureProgress >= 0.5) {
+        } else if (progress.correctRate >= 70) {
             progress.masteryLevel = 3;
-        } else if (progress.correctRate >= 50 || lectureProgress >= 0.3) {
+        } else if (progress.correctRate >= 50) {
             progress.masteryLevel = 2;
         } else {
             progress.masteryLevel = 1;
