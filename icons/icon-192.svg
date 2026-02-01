@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#1a365d"/>
+  <text x="96" y="85" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">社労</text>
+  <text x="96" y="135" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#ed8936" text-anchor="middle">2026</text>
+  <circle cx="156" cy="36" r="20" fill="#38a169"/>
+  <text x="156" y="43" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">合格</text>
+</svg>

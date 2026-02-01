@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a365d">
+    <title>社労士合格ナビ 2026</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- ログイン画面 -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-logo">
+                <div class="login-icon">📚</div>
+                <h1>社労士合格ナビ</h1>
+                <p>2026年試験対策</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label>パスワード</label>
+                    <input type="password" id="loginPassword" placeholder="パスワードを入力" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="submit-btn">ログイン</button>
+                <p class="login-error" id="loginError" style="display: none;">パスワードが違います</p>
+            </form>
+            <p class="login-hint">※ 初回アクセス時はパスワードを設定してください</p>
+        </div>
+    </div>
+
+    <!-- パスワード設定画面 -->
+    <div id="setupScreen" class="login-screen" style="display: none;">
+        <div class="login-container">
+            <div class="login-logo">
+                <div class="login-icon">🔐</div>
+                <h1>パスワード設定</h1>
+                <p>アプリを保護するパスワードを設定</p>
+            </div>
+            <form id="setupForm" class="login-form">
+                <div class="form-group">
+                    <label>新しいパスワード</label>
+                    <input type="password" id="newPassword" placeholder="4文字以上" required minlength="4" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label>パスワード確認</label>
+                    <input type="password" id="confirmPassword" placeholder="もう一度入力" required minlength="4" autocomplete="new-password">
+                </div>
+                <button type="submit" class="submit-btn">設定する</button>
+                <p class="login-error" id="setupError" style="display: none;">パスワードが一致しません</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="app" style="display: none;">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="header-title">社労士合格ナビ 2026</h1>
+                <div class="header-date" id="currentDate"></div>
+            </div>
+            <button class="header-settings" id="openSettingsBtn">⚙️</button>
+        </header>
+
+        <!-- ナビゲーション -->
+        <nav class="nav">
+            <button class="nav-btn active" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">ダッシュボード</span>
+            </button>
+            <button class="nav-btn" data-page="subjects">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">科目別</span>
+            </button>
+            <button class="nav-btn" data-page="study">
+                <span class="nav-icon">⏱️</span>
+                <span class="nav-label">学習記録</span>
+            </button>
+            <button class="nav-btn" data-page="audio">
+                <span class="nav-icon">🎧</span>
+                <span class="nav-label">音声</span>
+            </button>
+            <button class="nav-btn" data-page="cards">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">暗記</span>
+            </button>
+            <button class="nav-btn" data-page="quiz">
+                <span class="nav-icon">✍️</span>
+                <span class="nav-label">過去問</span>
+            </button>
+        </nav>
+
+        <!-- メインコンテンツ -->
+        <main class="main">
+            <!-- ダッシュボード -->
+            <section class="page active" id="page-dashboard">
+                <div class="dashboard">
+                    <!-- 試験までのカウントダウン -->
+                    <div class="card countdown-card">
+                        <div class="countdown-header">
+                            <span class="countdown-label">2026年社労士試験まで</span>
+                        </div>
+                        <div class="countdown-days">
+                            <span class="countdown-number" id="daysRemaining">---</span>
+                            <span class="countdown-unit">日</span>
+                        </div>
+                        <div class="countdown-date" id="examDate"></div>
+                    </div>
+
+                    <!-- 今週の学習状況 -->
+                    <div class="card">
+                        <h2 class="card-title">今週の学習</h2>
+                        <div class="weekly-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="weeklyHours">0</div>
+                                <div class="stat-label">時間</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="weeklyTarget">20</div>
+                                <div class="stat-label">目標</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="weeklyProgress">0%</div>
+                                <div class="stat-label">達成率</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weeklyProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- 学習フェーズ -->
+                    <div class="card">
+                        <h2 class="card-title">現在のフェーズ</h2>
+                        <div class="phase-info">
+                            <div class="phase-badge" id="currentPhase">Phase 1</div>
+                            <div class="phase-name" id="phaseName">基礎構築期</div>
+                            <div class="phase-period" id="phasePeriod">2月〜4月</div>
+                        </div>
+                        <div class="phase-goal" id="phaseGoal">
+                            講座のインプットを完了し、全科目の基礎を理解
+                        </div>
+                    </div>
+
+                    <!-- 全体進捗 -->
+                    <div class="card">
+                        <h2 class="card-title">全体進捗</h2>
+                        <div class="overall-progress">
+                            <div class="circular-progress" id="overallProgress">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="progress-bg" cx="50" cy="50" r="45"></circle>
+                                    <circle class="progress-circle" cx="50" cy="50" r="45" id="progressCircle"></circle>
+                                </svg>
+                                <div class="progress-text">
+                                    <span class="progress-value" id="overallPercent">0</span>
+                                    <span class="progress-symbol">%</span>
+                                </div>
+                            </div>
+                            <div class="progress-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">完了講義</span>
+                                    <span class="detail-value" id="completedLectures">0 / 95</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">総学習時間</span>
+                                    <span class="detail-value" id="totalStudyTime">0時間</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 足切りリスク警告 -->
+                    <div class="card risk-card">
+                        <h2 class="card-title">足切りリスク</h2>
+                        <div class="risk-list" id="riskList">
+                            <!-- JavaScript で動的に生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 今日のタスク -->
+                    <div class="card">
+                        <h2 class="card-title">今日のタスク</h2>
+                        <div class="task-list" id="todayTasks">
+                            <!-- JavaScript で動的に生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 法改正情報 -->
+                    <div class="card">
+                        <h2 class="card-title">2026年 法改正情報</h2>
+                        <div class="amendment-list" id="amendmentList">
+                            <!-- JavaScript で動的に生成 -->
+                        </div>
+                        <p class="amendment-note">※ 法改正情報は最新の公式発表を確認してください</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 科目別進捗 -->
+            <section class="page" id="page-subjects">
+                <div class="subjects">
+                    <div class="subject-filter">
+                        <button class="filter-btn active" data-filter="all">すべて</button>
+                        <button class="filter-btn" data-filter="labor">労働関係</button>
+                        <button class="filter-btn" data-filter="social">社会保険</button>
+                    </div>
+                    <div class="subject-list" id="subjectList">
+                        <!-- JavaScript で動的に生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 学習記録 -->
+            <section class="page" id="page-study">
+                <div class="study-record">
+                    <!-- タイマー -->
+                    <div class="card timer-card">
+                        <h2 class="card-title">学習タイマー</h2>
+                        <div class="timer-display" id="timerDisplay">00:00:00</div>
+                        <div class="timer-subject">
+                            <select id="timerSubject">
+                                <option value="">科目を選択</option>
+                            </select>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn start" id="timerStart">開始</button>
+                            <button class="timer-btn pause" id="timerPause" disabled>一時停止</button>
+                            <button class="timer-btn stop" id="timerStop" disabled>終了</button>
+                        </div>
+                    </div>
+
+                    <!-- 手動入力 -->
+                    <div class="card">
+                        <h2 class="card-title">学習時間を記録</h2>
+                        <form id="manualRecordForm" class="manual-form">
+                            <div class="form-group">
+                                <label>日付</label>
+                                <input type="date" id="recordDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>科目</label>
+                                <select id="recordSubject" required>
+                                    <option value="">選択してください</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>学習時間（分）</label>
+                                <input type="number" id="recordMinutes" min="1" max="600" required>
+                            </div>
+                            <div class="form-group">
+                                <label>内容</label>
+                                <select id="recordType">
+                                    <option value="lecture">講義視聴</option>
+                                    <option value="textbook">テキスト学習</option>
+                                    <option value="exercise">問題演習</option>
+                                    <option value="review">復習</option>
+                                    <option value="audio">音声学習</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="submit-btn">記録する</button>
+                        </form>
+                    </div>
+
+                    <!-- 学習履歴 -->
+                    <div class="card">
+                        <h2 class="card-title">最近の学習</h2>
+                        <div class="history-list" id="studyHistory">
+                            <!-- JavaScript で動的に生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 週間グラフ -->
+                    <div class="card">
+                        <h2 class="card-title">週間学習グラフ</h2>
+                        <div class="weekly-chart" id="weeklyChart">
+                            <!-- JavaScript で動的に生成 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 音声プレイヤー -->
+            <section class="page" id="page-audio">
+                <div class="audio-player">
+                    <div class="card">
+                        <h2 class="card-title">音声ファイル</h2>
+                        <div class="audio-upload">
+                            <input type="file" id="audioFileInput" accept="audio/*" multiple hidden>
+                            <button class="upload-btn" id="uploadAudioBtn">
+                                <span>＋</span> 音声ファイルを追加
+                            </button>
+                        </div>
+                        <div class="audio-list" id="audioList">
+                            <!-- JavaScript で動的に生成 -->
+                        </div>
+                    </div>
+
+                    <!-- プレイヤーコントロール -->
+                    <div class="card player-card" id="playerCard" style="display: none;">
+                        <div class="now-playing">
+                            <div class="track-info">
+                                <div class="track-name" id="trackName">-</div>
+                                <div class="track-subject" id="trackSubject">-</div>
+                            </div>
+                        </div>
+                        <div class="player-progress">
+                            <span class="time-current" id="currentTime">0:00</span>
+                            <input type="range" class="progress-slider" id="progressSlider" value="0" max="100">
+                            <span class="time-total" id="totalTime">0:00</span>
+                        </div>
+                        <div class="player-controls">
+                            <button class="control-btn" id="skipBackBtn">-15s</button>
+                            <button class="control-btn play-btn" id="playPauseBtn">▶</button>
+                            <button class="control-btn" id="skipForwardBtn">+15s</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>再生速度</label>
+                            <div class="speed-buttons">
+                                <button class="speed-btn" data-speed="0.75">0.75x</button>
+                                <button class="speed-btn" data-speed="1">1x</button>
+                                <button class="speed-btn active" data-speed="1.25">1.25x</button>
+                                <button class="speed-btn" data-speed="1.5">1.5x</button>
+                                <button class="speed-btn" data-speed="2">2x</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 暗記カード -->
+            <section class="page" id="page-cards">
+                <div class="flashcards">
+                    <div class="card">
+                        <h2 class="card-title">暗記カード</h2>
+                        <div class="card-filter">
+                            <select id="cardSubjectFilter">
+                                <option value="all">すべての科目</option>
+                            </select>
+                            <select id="cardStatusFilter">
+                                <option value="all">すべて</option>
+                                <option value="new">未学習</option>
+                                <option value="learning">学習中</option>
+                                <option value="mastered">習得済み</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- カード表示エリア -->
+                    <div class="flashcard-display" id="flashcardDisplay">
+                        <div class="flashcard" id="currentCard">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    <div class="flashcard-subject" id="cardSubject">科目名</div>
+                                    <div class="flashcard-question" id="cardQuestion">質問がここに表示されます</div>
+                                </div>
+                                <div class="flashcard-back">
+                                    <div class="flashcard-answer" id="cardAnswer">答えがここに表示されます</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-counter">
+                            <span id="cardCurrent">0</span> / <span id="cardTotal">0</span>
+                        </div>
+                    </div>
+
+                    <!-- カード操作 -->
+                    <div class="card-actions">
+                        <button class="action-btn wrong" id="cardWrong">
+                            <span>✕</span>
+                            <span>わからない</span>
+                        </button>
+                        <button class="action-btn flip" id="cardFlip">
+                            <span>↻</span>
+                            <span>めくる</span>
+                        </button>
+                        <button class="action-btn correct" id="cardCorrect">
+                            <span>○</span>
+                            <span>わかった</span>
+                        </button>
+                    </div>
+
+                    <!-- カード追加 -->
+                    <div class="card">
+                        <h2 class="card-title">カードを追加</h2>
+                        <form id="addCardForm" class="add-card-form">
+                            <div class="form-group">
+                                <label>科目</label>
+                                <select id="newCardSubject" required>
+                                    <option value="">選択してください</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>問題</label>
+                                <textarea id="newCardQuestion" rows="3" required placeholder="例: 雇用保険の基本手当の所定給付日数は？"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>答え</label>
+                                <textarea id="newCardAnswer" rows="3" required placeholder="例: 被保険者期間と年齢により90日〜360日"></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">追加する</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 過去問演習 -->
+            <section class="page" id="page-quiz">
+                <div class="quiz-section">
+                    <!-- 問題データ管理 -->
+                    <div class="card">
+                        <h2 class="card-title">過去問データ</h2>
+                        <div class="quiz-data-info">
+                            <div class="data-stat">
+                                <span class="data-stat-value" id="quizTotalCount">0</span>
+                                <span class="data-stat-label">問</span>
+                            </div>
+                            <div class="data-stat">
+                                <span class="data-stat-value" id="quizTodayDue">0</span>
+                                <span class="data-stat-label">今日の復習</span>
+                            </div>
+                            <div class="data-stat">
+                                <span class="data-stat-value" id="quizAccuracy">-</span>
+                                <span class="data-stat-label">正答率</span>
+                            </div>
+                        </div>
+                        <div class="quiz-import">
+                            <input type="file" id="csvFileInput" accept=".csv" hidden>
+                            <button class="upload-btn" id="importCsvBtn">
+                                <span>📥</span> CSVから問題をインポート
+                            </button>
+                            <p class="import-hint">Googleスプレッドシートからエクスポートしたファイルを読み込めます</p>
+                        </div>
+                    </div>
+
+                    <!-- 出題設定 -->
+                    <div class="card">
+                        <h2 class="card-title">出題設定</h2>
+                        <div class="quiz-settings">
+                            <div class="form-group">
+                                <label>科目</label>
+                                <select id="quizSubjectFilter">
+                                    <option value="all">すべての科目</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>出題モード</label>
+                                <select id="quizMode">
+                                    <option value="due">復習が必要な問題</option>
+                                    <option value="random">ランダム出題</option>
+                                    <option value="wrong">間違えた問題のみ</option>
+                                    <option value="new">未学習の問題</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>出題数</label>
+                                <select id="quizCount">
+                                    <option value="10">10問</option>
+                                    <option value="20">20問</option>
+                                    <option value="30">30問</option>
+                                    <option value="50">50問</option>
+                                    <option value="all">すべて</option>
+                                </select>
+                            </div>
+                            <button class="submit-btn" id="startQuizBtn">演習を開始</button>
+                        </div>
+                    </div>
+
+                    <!-- 問題表示エリア -->
+                    <div class="card quiz-card" id="quizCard" style="display: none;">
+                        <div class="quiz-header">
+                            <span class="quiz-progress" id="quizProgress">1 / 10</span>
+                            <span class="quiz-topic" id="quizTopic">令和6年 問01-A</span>
+                        </div>
+                        <div class="quiz-question" id="quizQuestion">
+                            問題文がここに表示されます
+                        </div>
+                        <div class="quiz-choices" id="quizChoices">
+                            <button class="choice-btn" id="choiceCorrect">○ 正しい</button>
+                            <button class="choice-btn" id="choiceWrong">× 誤り</button>
+                            <button class="choice-btn" id="choiceUnsure">？ 不明</button>
+                        </div>
+                        <div class="quiz-result" id="quizResult" style="display: none;">
+                            <div class="result-indicator" id="resultIndicator"></div>
+                            <div class="correct-answer" id="correctAnswer"></div>
+                            <div class="quiz-explanation" id="quizExplanation"></div>
+                            <button class="submit-btn" id="nextQuestionBtn">次の問題へ</button>
+                        </div>
+                    </div>
+
+                    <!-- 演習結果 -->
+                    <div class="card" id="quizSummary" style="display: none;">
+                        <h2 class="card-title">演習結果</h2>
+                        <div class="summary-stats">
+                            <div class="summary-item">
+                                <div class="summary-value" id="summaryCorrect">0</div>
+                                <div class="summary-label">正解</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" id="summaryWrong">0</div>
+                                <div class="summary-label">不正解</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" id="summaryRate">0%</div>
+                                <div class="summary-label">正答率</div>
+                            </div>
+                        </div>
+                        <button class="submit-btn" id="retryQuizBtn">もう一度演習する</button>
+                    </div>
+
+                    <!-- 学習履歴 -->
+                    <div class="card">
+                        <h2 class="card-title">最近の演習</h2>
+                        <div class="quiz-history" id="quizHistory">
+                            <div class="empty-state">
+                                <div class="empty-state-text">まだ演習履歴がありません</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 設定モーダル -->
+    <div class="modal" id="settingsModal" style="display: none;">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>設定</h2>
+                <button class="modal-close" id="closeSettingsBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- リマインダー設定 -->
+                <div class="settings-section">
+                    <h3>学習リマインダー</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="reminderEnabled">
+                            リマインダーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group" id="reminderTimeGroup">
+                        <label>通知時間</label>
+                        <input type="time" id="reminderTime" value="20:00">
+                    </div>
+                    <div class="form-group">
+                        <label>通知メッセージ</label>
+                        <input type="text" id="reminderMessage" value="今日の学習を始めましょう！" placeholder="通知メッセージ">
+                    </div>
+                    <button class="submit-btn" id="testNotificationBtn">テスト通知を送信</button>
+                </div>
+
+                <!-- 週間目標設定 -->
+                <div class="settings-section">
+                    <h3>週間目標</h3>
+                    <div class="form-group">
+                        <label>週間学習目標（時間）</label>
+                        <input type="number" id="weeklyTargetHours" value="20" min="1" max="100">
+                    </div>
+                </div>
+
+                <!-- データ管理 -->
+                <div class="settings-section">
+                    <h3>データ管理</h3>
+                    <div class="settings-buttons">
+                        <button class="secondary-btn" id="exportDataBtn">データをエクスポート</button>
+                        <button class="secondary-btn" id="importDataBtn">データをインポート</button>
+                        <button class="danger-btn" id="resetDataBtn">データをリセット</button>
+                    </div>
+                    <input type="file" id="importDataInput" accept=".json" hidden>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音声要素 -->
+    <audio id="audioPlayer"></audio>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Service Worker登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>
