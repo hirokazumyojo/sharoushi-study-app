@@ -1800,6 +1800,91 @@ body {
     margin-top: var(--spacing-lg);
 }
 
+/* ========================================
+   講義シリーズ進捗
+   ======================================== */
+.lecture-series-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.lecture-series-item {
+    background: var(--gray-50);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.series-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+}
+
+.series-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+}
+
+.series-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+
+.series-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: var(--spacing-xs);
+}
+
+.lecture-series-item .progress-bar {
+    height: 6px;
+    margin-bottom: var(--spacing-xs);
+}
+
+.series-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: flex-end;
+}
+
+.series-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.series-btn:hover {
+    background: var(--primary-light);
+}
+
+.series-btn.decrement {
+    background: var(--gray-400);
+}
+
+.series-btn.decrement:hover {
+    background: var(--gray-500);
+}
+
+/* 科目説明 */
+.subject-description {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.4;
+}
+
 /* ダークモード対応（将来用） */
 @media (prefers-color-scheme: dark) {
     /* 将来的にダークモード対応する場合はここに追加 */
