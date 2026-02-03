@@ -1806,50 +1806,60 @@ body {
 .lecture-series-list {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-md);
 }
 
 .lecture-series-item {
-    background: var(--gray-50);
-    border-radius: var(--radius-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
+    background: white;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--gray-300);
+    transition: var(--transition);
+}
+
+.lecture-series-item:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .series-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
 }
 
 .series-badge {
     font-size: 0.7rem;
-    font-weight: 600;
-    padding: 2px 8px;
+    font-weight: 700;
+    padding: 4px 10px;
     border-radius: var(--radius-full);
+    letter-spacing: 0.5px;
 }
 
 .series-count {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--gray-600);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gray-700);
 }
 
 .series-name {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--gray-700);
-    margin-bottom: var(--spacing-xs);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: var(--spacing-sm);
 }
 
 .lecture-series-item .progress-bar {
-    height: 6px;
-    margin-bottom: var(--spacing-xs);
+    height: 8px;
+    margin-bottom: var(--spacing-sm);
+    border-radius: var(--radius-full);
+    overflow: hidden;
 }
 
 .series-actions {
     display: flex;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
     justify-content: flex-end;
 }
 
@@ -1857,24 +1867,50 @@ body {
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: var(--radius-sm);
-    padding: 4px 12px;
-    font-size: 0.75rem;
+    border-radius: var(--radius-full);
+    padding: 6px 16px;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
+    min-width: 44px;
 }
 
 .series-btn:hover {
     background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+.series-btn:active {
+    transform: translateY(0);
 }
 
 .series-btn.decrement {
-    background: var(--gray-400);
+    background: transparent;
+    color: var(--gray-500);
+    border: 1px solid var(--gray-300);
 }
 
 .series-btn.decrement:hover {
-    background: var(--gray-500);
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+/* 講義シリーズのカテゴリ別ボーダー色 */
+.lecture-series-item[data-id="pension_basis"] {
+    border-left-color: #805ad5;
+}
+.lecture-series-item[data-id="toolbox"] {
+    border-left-color: #3182ce;
+}
+.lecture-series-item[data-id="swingby"] {
+    border-left-color: #dd6b20;
+}
+.lecture-series-item[data-id="final"] {
+    border-left-color: #e53e3e;
+}
+.lecture-series-item[data-id="opus"] {
+    border-left-color: #38a169;
 }
 
 /* 科目説明 */
