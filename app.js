@@ -428,6 +428,7 @@ class SharoushiApp {
         this.renderCTA();
         this.renderCountdown();
         this.renderWeeklyStats();
+        this.renderCalendar();
         this.renderPhase();
         this.renderOverallProgress();
         this.renderLectureSeriesProgress();
@@ -644,6 +645,83 @@ class SharoushiApp {
         return this.state.studyRecords
             .filter(record => new Date(record.date) >= weekStart)
             .reduce((sum, record) => sum + record.minutes, 0);
+    }
+
+    // ========================================
+    // 学習カレンダー（GitHub草風）
+    // ========================================
+    renderCalendar() {
+        const container = document.getElementById('studyCalendar');
+        if (!container) return;
+
+        // 過去12週間分のデータを表示
+        const weeks = 12;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 日付ごとの学習時間を集計
+        const studyByDate = {};
+        this.state.studyRecords.forEach(record => {
+            if (!studyByDate[record.date]) {
+                studyByDate[record.date] = 0;
+            }
+            studyByDate[record.date] += record.minutes;
+        });
+
+        // 最大学習時間を取得（レベル計算用）
+        const maxMinutes = Math.max(...Object.values(studyByDate), 60);
+
+        // カレンダーグリッドを生成
+        let html = '<div class="calendar-grid">';
+
+        // 開始日を計算（今日から12週間前の日曜日）
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - (weeks * 7) + (7 - today.getDay()));
+
+        // 曜日ラベル
+        const dayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+
+        // 7行（曜日）× 12週のグリッドを生成
+        for (let day = 0; day < 7; day++) {
+            html += '<div class="calendar-row">';
+            if (day === 1 || day === 3 || day === 5) {
+                html += `<span class="calendar-day-label">${dayLabels[day]}</span>`;
+            } else {
+                html += '<span class="calendar-day-label"></span>';
+            }
+
+            for (let week = 0; week < weeks; week++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + week * 7 + day);
+                const dateStr = cellDate.toISOString().split('T')[0];
+                const minutes = studyByDate[dateStr] || 0;
+
+                // レベルを計算（0-4）
+                let level = 0;
+                if (minutes > 0) {
+                    const ratio = minutes / maxMinutes;
+                    if (ratio >= 0.75) level = 4;
+                    else if (ratio >= 0.5) level = 3;
+                    else if (ratio >= 0.25) level = 2;
+                    else level = 1;
+                }
+
+                // 未来の日付は非表示
+                const isFuture = cellDate > today;
+                const displayClass = isFuture ? 'future' : `level-${level}`;
+
+                const formattedDate = `${cellDate.getMonth() + 1}/${cellDate.getDate()}`;
+                const tooltip = minutes > 0
+                    ? `${formattedDate}: ${Math.floor(minutes / 60)}時間${minutes % 60}分`
+                    : `${formattedDate}: 学習なし`;
+
+                html += `<div class="calendar-cell ${displayClass}" title="${tooltip}"></div>`;
+            }
+            html += '</div>';
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
     }
 
     renderPhase() {

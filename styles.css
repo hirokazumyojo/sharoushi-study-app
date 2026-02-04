@@ -312,6 +312,103 @@ body {
     opacity: 0.8;
 }
 
+/* 学習カレンダー（GitHub草風） */
+.calendar-container {
+    overflow-x: auto;
+    padding-bottom: var(--spacing-sm);
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.calendar-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.calendar-day-label {
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    width: 16px;
+    text-align: right;
+    padding-right: 4px;
+}
+
+.calendar-cell {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--gray-100);
+}
+
+.calendar-cell.level-0 {
+    background: var(--gray-100);
+}
+
+.calendar-cell.level-1 {
+    background: #9be9a8;
+}
+
+.calendar-cell.level-2 {
+    background: #40c463;
+}
+
+.calendar-cell.level-3 {
+    background: #30a14e;
+}
+
+.calendar-cell.level-4 {
+    background: #216e39;
+}
+
+.calendar-cell.future {
+    background: transparent;
+}
+
+.calendar-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: var(--spacing-sm);
+    font-size: 0.7rem;
+    color: var(--gray-500);
+}
+
+.legend-label {
+    margin: 0 2px;
+}
+
+.legend-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.legend-box.level-0 {
+    background: var(--gray-100);
+}
+
+.legend-box.level-1 {
+    background: #9be9a8;
+}
+
+.legend-box.level-2 {
+    background: #40c463;
+}
+
+.legend-box.level-3 {
+    background: #30a14e;
+}
+
+.legend-box.level-4 {
+    background: #216e39;
+}
+
 .countdown-card {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     color: white;
