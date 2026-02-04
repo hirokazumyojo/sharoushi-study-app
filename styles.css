@@ -257,6 +257,61 @@ body {
     font-weight: 700;
 }
 
+/* CTA（今日の学習を始める）ボタン */
+.cta-card {
+    margin-bottom: var(--spacing-md);
+}
+
+.cta-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    text-align: left;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.cta-button:active {
+    transform: translateY(0);
+}
+
+.cta-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.cta-text {
+    flex: 1;
+}
+
+.cta-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.cta-sublabel {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.cta-arrow {
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
 .countdown-card {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     color: white;

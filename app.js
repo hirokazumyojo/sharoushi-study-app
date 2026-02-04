@@ -425,6 +425,7 @@ class SharoushiApp {
 
     renderDashboard() {
         this.renderStreak();
+        this.renderCTA();
         this.renderCountdown();
         this.renderWeeklyStats();
         this.renderPhase();
@@ -433,6 +434,70 @@ class SharoushiApp {
         this.renderRiskList();
         this.renderTodayTasks();
         this.renderAmendments();
+    }
+
+    // ========================================
+    // CTA（今日の学習を始める）
+    // ========================================
+    renderCTA() {
+        const container = document.getElementById('ctaCard');
+        if (!container) return;
+
+        const streak = this.calculateStreak();
+        const quizCount = this.state.quizQuestions?.length || 0;
+        const cardCount = this.state.flashcards?.length || 0;
+
+        // 今日の推奨アクションを決定
+        let action, label, sublabel, icon, page;
+
+        if (!streak.studiedToday) {
+            // 今日まだ学習していない場合
+            if (quizCount > 0) {
+                action = 'quiz';
+                label = '今日の学習を始める';
+                sublabel = `過去問 ${quizCount}問から出題`;
+                icon = '📝';
+                page = 'quiz';
+            } else if (cardCount > 0) {
+                action = 'cards';
+                label = '暗記カードで学習';
+                sublabel = `${cardCount}枚のカードを復習`;
+                icon = '🎴';
+                page = 'cards';
+            } else {
+                action = 'study';
+                label = '学習タイマーを開始';
+                sublabel = '学習時間を記録しましょう';
+                icon = '⏱️';
+                page = 'study';
+            }
+        } else {
+            // 今日すでに学習した場合
+            if (quizCount > 0) {
+                action = 'quiz';
+                label = 'もう少し問題を解く';
+                sublabel = '継続は力なり！';
+                icon = '💪';
+                page = 'quiz';
+            } else {
+                action = 'cards';
+                label = '暗記カードを復習';
+                sublabel = '知識を定着させましょう';
+                icon = '🔄';
+                page = 'cards';
+            }
+        }
+
+        container.innerHTML = `
+            <button class="cta-button" onclick="app.navigateTo('${page}')">
+                <span class="cta-icon">${icon}</span>
+                <div class="cta-text">
+                    <div class="cta-label">${label}</div>
+                    <div class="cta-sublabel">${sublabel}</div>
+                </div>
+                <span class="cta-arrow">→</span>
+            </button>
+        `;
     }
 
     // ========================================
