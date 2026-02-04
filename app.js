@@ -426,6 +426,7 @@ class SharoushiApp {
     renderDashboard() {
         this.renderStreak();
         this.renderCTA();
+        this.renderDailyChallenge();
         this.renderCountdown();
         this.renderWeeklyStats();
         this.renderCalendar();
@@ -499,6 +500,116 @@ class SharoushiApp {
                 <span class="cta-arrow">→</span>
             </button>
         `;
+    }
+
+    // ========================================
+    // デイリーチャレンジ
+    // ========================================
+    renderDailyChallenge() {
+        const container = document.getElementById('dailyChallengeCard');
+        if (!container) return;
+
+        const today = new Date().toISOString().split('T')[0];
+
+        // 今日の目標を定義
+        const challenges = [
+            {
+                id: 'study_time',
+                label: '学習時間',
+                target: 60, // 60分
+                unit: '分',
+                icon: '⏱️'
+            },
+            {
+                id: 'flashcards',
+                label: '暗記カード',
+                target: 10,
+                unit: '枚',
+                icon: '🎴'
+            },
+            {
+                id: 'quiz',
+                label: '過去問演習',
+                target: 5,
+                unit: '問',
+                icon: '✍️'
+            }
+        ];
+
+        // 今日の進捗を計算
+        // 学習時間
+        const todayMinutes = this.state.studyRecords
+            .filter(r => r.date === today)
+            .reduce((sum, r) => sum + r.minutes, 0);
+
+        // 暗記カード（今日復習したカード数）
+        const todayCards = this.state.flashcards
+            .filter(c => c.lastReviewed && c.lastReviewed.startsWith(today))
+            .length;
+
+        // 過去問（今日解いた問題数）
+        const todayQuiz = this.state.quizHistory
+            .filter(h => h.date && h.date.startsWith(today))
+            .reduce((sum, h) => sum + (h.total || 0), 0);
+
+        const progress = {
+            study_time: todayMinutes,
+            flashcards: todayCards,
+            quiz: todayQuiz
+        };
+
+        // 完了したチャレンジ数
+        const completed = challenges.filter(c =>
+            progress[c.id] >= c.target
+        ).length;
+        const allCompleted = completed === challenges.length;
+
+        // HTML生成
+        let html = `
+            <div class="challenge-header">
+                <h2 class="card-title">今日のチャレンジ</h2>
+                <span class="challenge-status ${allCompleted ? 'completed' : ''}">
+                    ${allCompleted ? '達成!' : `${completed}/${challenges.length}`}
+                </span>
+            </div>
+            <div class="challenge-list">
+        `;
+
+        challenges.forEach(challenge => {
+            const current = progress[challenge.id];
+            const percent = Math.min((current / challenge.target) * 100, 100);
+            const isComplete = current >= challenge.target;
+
+            html += `
+                <div class="challenge-item ${isComplete ? 'completed' : ''}">
+                    <div class="challenge-icon">${isComplete ? '✓' : challenge.icon}</div>
+                    <div class="challenge-info">
+                        <div class="challenge-label">${challenge.label}</div>
+                        <div class="challenge-progress-bar">
+                            <div class="challenge-progress-fill" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                    <div class="challenge-count">
+                        <span class="current">${current}</span>
+                        <span class="separator">/</span>
+                        <span class="target">${challenge.target}${challenge.unit}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        // ボーナスメッセージ
+        if (allCompleted) {
+            html += `
+                <div class="challenge-bonus">
+                    素晴らしい！今日のチャレンジを全てクリアしました！
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
     }
 
     // ========================================
