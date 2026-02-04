@@ -424,14 +424,278 @@ class SharoushiApp {
     }
 
     renderDashboard() {
+        this.renderStreak();
+        this.renderCTA();
+        this.renderDailyChallenge();
         this.renderCountdown();
         this.renderWeeklyStats();
+        this.renderCalendar();
         this.renderPhase();
         this.renderOverallProgress();
         this.renderLectureSeriesProgress();
         this.renderRiskList();
         this.renderTodayTasks();
         this.renderAmendments();
+    }
+
+    // ========================================
+    // CTA（今日の学習を始める）
+    // ========================================
+    renderCTA() {
+        const container = document.getElementById('ctaCard');
+        if (!container) return;
+
+        const streak = this.calculateStreak();
+        const quizCount = this.state.quizQuestions?.length || 0;
+        const cardCount = this.state.flashcards?.length || 0;
+
+        // 今日の推奨アクションを決定
+        let action, label, sublabel, icon, page;
+
+        if (!streak.studiedToday) {
+            // 今日まだ学習していない場合
+            if (quizCount > 0) {
+                action = 'quiz';
+                label = '今日の学習を始める';
+                sublabel = `過去問 ${quizCount}問から出題`;
+                icon = '📝';
+                page = 'quiz';
+            } else if (cardCount > 0) {
+                action = 'cards';
+                label = '暗記カードで学習';
+                sublabel = `${cardCount}枚のカードを復習`;
+                icon = '🎴';
+                page = 'cards';
+            } else {
+                action = 'study';
+                label = '学習タイマーを開始';
+                sublabel = '学習時間を記録しましょう';
+                icon = '⏱️';
+                page = 'study';
+            }
+        } else {
+            // 今日すでに学習した場合
+            if (quizCount > 0) {
+                action = 'quiz';
+                label = 'もう少し問題を解く';
+                sublabel = '継続は力なり！';
+                icon = '💪';
+                page = 'quiz';
+            } else {
+                action = 'cards';
+                label = '暗記カードを復習';
+                sublabel = '知識を定着させましょう';
+                icon = '🔄';
+                page = 'cards';
+            }
+        }
+
+        container.innerHTML = `
+            <button class="cta-button" onclick="app.navigateTo('${page}')">
+                <span class="cta-icon">${icon}</span>
+                <div class="cta-text">
+                    <div class="cta-label">${label}</div>
+                    <div class="cta-sublabel">${sublabel}</div>
+                </div>
+                <span class="cta-arrow">→</span>
+            </button>
+        `;
+    }
+
+    // ========================================
+    // デイリーチャレンジ
+    // ========================================
+    renderDailyChallenge() {
+        const container = document.getElementById('dailyChallengeCard');
+        if (!container) return;
+
+        const today = new Date().toISOString().split('T')[0];
+
+        // 今日の目標を定義
+        const challenges = [
+            {
+                id: 'study_time',
+                label: '学習時間',
+                target: 60, // 60分
+                unit: '分',
+                icon: '⏱️'
+            },
+            {
+                id: 'flashcards',
+                label: '暗記カード',
+                target: 10,
+                unit: '枚',
+                icon: '🎴'
+            },
+            {
+                id: 'quiz',
+                label: '過去問演習',
+                target: 5,
+                unit: '問',
+                icon: '✍️'
+            }
+        ];
+
+        // 今日の進捗を計算
+        // 学習時間
+        const todayMinutes = this.state.studyRecords
+            .filter(r => r.date === today)
+            .reduce((sum, r) => sum + r.minutes, 0);
+
+        // 暗記カード（今日復習したカード数）
+        const todayCards = this.state.flashcards
+            .filter(c => c.lastReviewed && c.lastReviewed.startsWith(today))
+            .length;
+
+        // 過去問（今日解いた問題数）
+        const todayQuiz = this.state.quizHistory
+            .filter(h => h.date && h.date.startsWith(today))
+            .reduce((sum, h) => sum + (h.total || 0), 0);
+
+        const progress = {
+            study_time: todayMinutes,
+            flashcards: todayCards,
+            quiz: todayQuiz
+        };
+
+        // 完了したチャレンジ数
+        const completed = challenges.filter(c =>
+            progress[c.id] >= c.target
+        ).length;
+        const allCompleted = completed === challenges.length;
+
+        // HTML生成
+        let html = `
+            <div class="challenge-header">
+                <h2 class="card-title">今日のチャレンジ</h2>
+                <span class="challenge-status ${allCompleted ? 'completed' : ''}">
+                    ${allCompleted ? '達成!' : `${completed}/${challenges.length}`}
+                </span>
+            </div>
+            <div class="challenge-list">
+        `;
+
+        challenges.forEach(challenge => {
+            const current = progress[challenge.id];
+            const percent = Math.min((current / challenge.target) * 100, 100);
+            const isComplete = current >= challenge.target;
+
+            html += `
+                <div class="challenge-item ${isComplete ? 'completed' : ''}">
+                    <div class="challenge-icon">${isComplete ? '✓' : challenge.icon}</div>
+                    <div class="challenge-info">
+                        <div class="challenge-label">${challenge.label}</div>
+                        <div class="challenge-progress-bar">
+                            <div class="challenge-progress-fill" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                    <div class="challenge-count">
+                        <span class="current">${current}</span>
+                        <span class="separator">/</span>
+                        <span class="target">${challenge.target}${challenge.unit}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        // ボーナスメッセージ
+        if (allCompleted) {
+            html += `
+                <div class="challenge-bonus">
+                    素晴らしい！今日のチャレンジを全てクリアしました！
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+    }
+
+    // ========================================
+    // ストリーク（連続学習日数）
+    // ========================================
+    calculateStreak() {
+        const records = this.state.studyRecords;
+        if (records.length === 0) return { current: 0, best: 0, studiedToday: false };
+
+        // 日付ごとにグループ化
+        const studyDates = new Set(records.map(r => r.date));
+
+        // 今日の日付
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split('T')[0];
+
+        // 今日学習したか
+        const studiedToday = studyDates.has(todayStr);
+
+        // 連続日数を計算
+        let currentStreak = 0;
+        let checkDate = new Date(today);
+
+        // 今日学習していない場合は昨日からチェック
+        if (!studiedToday) {
+            checkDate.setDate(checkDate.getDate() - 1);
+        }
+
+        while (true) {
+            const dateStr = checkDate.toISOString().split('T')[0];
+            if (studyDates.has(dateStr)) {
+                currentStreak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+
+        // 最長記録を取得（localStorageから）
+        const bestStreak = Math.max(
+            currentStreak,
+            parseInt(localStorage.getItem('sharoushi_best_streak') || '0')
+        );
+
+        // 最長記録を更新
+        if (currentStreak > parseInt(localStorage.getItem('sharoushi_best_streak') || '0')) {
+            localStorage.setItem('sharoushi_best_streak', currentStreak.toString());
+        }
+
+        return { current: currentStreak, best: bestStreak, studiedToday };
+    }
+
+    renderStreak() {
+        const container = document.getElementById('streakCard');
+        if (!container) return;
+
+        const streak = this.calculateStreak();
+        const fireEmoji = streak.current >= 7 ? '🔥🔥' : streak.current >= 3 ? '🔥' : '✨';
+
+        let message = '';
+        if (!streak.studiedToday) {
+            message = '今日はまだ学習していません';
+        } else if (streak.current >= 30) {
+            message = '素晴らしい！1ヶ月継続中！';
+        } else if (streak.current >= 7) {
+            message = '1週間継続達成！';
+        } else if (streak.current >= 3) {
+            message = '良い調子です！';
+        } else {
+            message = '今日も学習しました！';
+        }
+
+        container.innerHTML = `
+            <div class="streak-display">
+                <div class="streak-icon">${fireEmoji}</div>
+                <div class="streak-info">
+                    <div class="streak-count">${streak.current}<span class="streak-unit">日連続</span></div>
+                    <div class="streak-message">${message}</div>
+                </div>
+                <div class="streak-best">
+                    <div class="streak-best-label">最長記録</div>
+                    <div class="streak-best-value">${streak.best}日</div>
+                </div>
+            </div>
+        `;
     }
 
     renderAmendments() {
@@ -492,6 +756,83 @@ class SharoushiApp {
         return this.state.studyRecords
             .filter(record => new Date(record.date) >= weekStart)
             .reduce((sum, record) => sum + record.minutes, 0);
+    }
+
+    // ========================================
+    // 学習カレンダー（GitHub草風）
+    // ========================================
+    renderCalendar() {
+        const container = document.getElementById('studyCalendar');
+        if (!container) return;
+
+        // 過去12週間分のデータを表示
+        const weeks = 12;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 日付ごとの学習時間を集計
+        const studyByDate = {};
+        this.state.studyRecords.forEach(record => {
+            if (!studyByDate[record.date]) {
+                studyByDate[record.date] = 0;
+            }
+            studyByDate[record.date] += record.minutes;
+        });
+
+        // 最大学習時間を取得（レベル計算用）
+        const maxMinutes = Math.max(...Object.values(studyByDate), 60);
+
+        // カレンダーグリッドを生成
+        let html = '<div class="calendar-grid">';
+
+        // 開始日を計算（今日から12週間前の日曜日）
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - (weeks * 7) + (7 - today.getDay()));
+
+        // 曜日ラベル
+        const dayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+
+        // 7行（曜日）× 12週のグリッドを生成
+        for (let day = 0; day < 7; day++) {
+            html += '<div class="calendar-row">';
+            if (day === 1 || day === 3 || day === 5) {
+                html += `<span class="calendar-day-label">${dayLabels[day]}</span>`;
+            } else {
+                html += '<span class="calendar-day-label"></span>';
+            }
+
+            for (let week = 0; week < weeks; week++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + week * 7 + day);
+                const dateStr = cellDate.toISOString().split('T')[0];
+                const minutes = studyByDate[dateStr] || 0;
+
+                // レベルを計算（0-4）
+                let level = 0;
+                if (minutes > 0) {
+                    const ratio = minutes / maxMinutes;
+                    if (ratio >= 0.75) level = 4;
+                    else if (ratio >= 0.5) level = 3;
+                    else if (ratio >= 0.25) level = 2;
+                    else level = 1;
+                }
+
+                // 未来の日付は非表示
+                const isFuture = cellDate > today;
+                const displayClass = isFuture ? 'future' : `level-${level}`;
+
+                const formattedDate = `${cellDate.getMonth() + 1}/${cellDate.getDate()}`;
+                const tooltip = minutes > 0
+                    ? `${formattedDate}: ${Math.floor(minutes / 60)}時間${minutes % 60}分`
+                    : `${formattedDate}: 学習なし`;
+
+                html += `<div class="calendar-cell ${displayClass}" title="${tooltip}"></div>`;
+            }
+            html += '</div>';
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
     }
 
     renderPhase() {

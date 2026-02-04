@@ -200,6 +200,350 @@ body {
 /* ========================================
    ダッシュボード
    ======================================== */
+
+/* ストリーク（連続学習日数） */
+.streak-card {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.streak-display {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.streak-icon {
+    font-size: 2rem;
+}
+
+.streak-info {
+    flex: 1;
+}
+
+.streak-count {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.streak-unit {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.streak-message {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.streak-best {
+    text-align: right;
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+}
+
+.streak-best-label {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.streak-best-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* CTA（今日の学習を始める）ボタン */
+.cta-card {
+    margin-bottom: var(--spacing-md);
+}
+
+.cta-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    text-align: left;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.cta-button:active {
+    transform: translateY(0);
+}
+
+.cta-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.cta-text {
+    flex: 1;
+}
+
+.cta-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.cta-sublabel {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.cta-arrow {
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+/* 学習カレンダー（GitHub草風） */
+.calendar-container {
+    overflow-x: auto;
+    padding-bottom: var(--spacing-sm);
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.calendar-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.calendar-day-label {
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    width: 16px;
+    text-align: right;
+    padding-right: 4px;
+}
+
+.calendar-cell {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--gray-100);
+}
+
+.calendar-cell.level-0 {
+    background: var(--gray-100);
+}
+
+.calendar-cell.level-1 {
+    background: #9be9a8;
+}
+
+.calendar-cell.level-2 {
+    background: #40c463;
+}
+
+.calendar-cell.level-3 {
+    background: #30a14e;
+}
+
+.calendar-cell.level-4 {
+    background: #216e39;
+}
+
+.calendar-cell.future {
+    background: transparent;
+}
+
+.calendar-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: var(--spacing-sm);
+    font-size: 0.7rem;
+    color: var(--gray-500);
+}
+
+.legend-label {
+    margin: 0 2px;
+}
+
+.legend-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.legend-box.level-0 {
+    background: var(--gray-100);
+}
+
+.legend-box.level-1 {
+    background: #9be9a8;
+}
+
+.legend-box.level-2 {
+    background: #40c463;
+}
+
+.legend-box.level-3 {
+    background: #30a14e;
+}
+
+.legend-box.level-4 {
+    background: #216e39;
+}
+
+/* デイリーチャレンジ */
+.daily-challenge-card {
+    background: white;
+}
+
+.challenge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.challenge-header .card-title {
+    margin-bottom: 0;
+}
+
+.challenge-status {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    background: var(--gray-100);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+}
+
+.challenge-status.completed {
+    background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
+    color: white;
+}
+
+.challenge-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.challenge-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.challenge-item.completed {
+    background: #f0fff4;
+}
+
+.challenge-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background: white;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.challenge-item.completed .challenge-icon {
+    background: var(--success);
+    color: white;
+    font-size: 1rem;
+}
+
+.challenge-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.challenge-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 4px;
+}
+
+.challenge-progress-bar {
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.challenge-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease;
+}
+
+.challenge-item.completed .challenge-progress-fill {
+    background: var(--success);
+}
+
+.challenge-count {
+    text-align: right;
+    min-width: 70px;
+    flex-shrink: 0;
+}
+
+.challenge-count .current {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.challenge-item.completed .challenge-count .current {
+    color: var(--success);
+}
+
+.challenge-count .separator {
+    color: var(--gray-400);
+    margin: 0 2px;
+}
+
+.challenge-count .target {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+.challenge-bonus {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--success);
+}
+
 .countdown-card {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     color: white;
