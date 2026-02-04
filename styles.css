@@ -200,6 +200,63 @@ body {
 /* ========================================
    ダッシュボード
    ======================================== */
+
+/* ストリーク（連続学習日数） */
+.streak-card {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.streak-display {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.streak-icon {
+    font-size: 2rem;
+}
+
+.streak-info {
+    flex: 1;
+}
+
+.streak-count {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.streak-unit {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.streak-message {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.streak-best {
+    text-align: right;
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+}
+
+.streak-best-label {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.streak-best-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
 .countdown-card {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     color: white;

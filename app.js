@@ -424,6 +424,7 @@ class SharoushiApp {
     }
 
     renderDashboard() {
+        this.renderStreak();
         this.renderCountdown();
         this.renderWeeklyStats();
         this.renderPhase();
@@ -432,6 +433,92 @@ class SharoushiApp {
         this.renderRiskList();
         this.renderTodayTasks();
         this.renderAmendments();
+    }
+
+    // ========================================
+    // ストリーク（連続学習日数）
+    // ========================================
+    calculateStreak() {
+        const records = this.state.studyRecords;
+        if (records.length === 0) return { current: 0, best: 0, studiedToday: false };
+
+        // 日付ごとにグループ化
+        const studyDates = new Set(records.map(r => r.date));
+
+        // 今日の日付
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split('T')[0];
+
+        // 今日学習したか
+        const studiedToday = studyDates.has(todayStr);
+
+        // 連続日数を計算
+        let currentStreak = 0;
+        let checkDate = new Date(today);
+
+        // 今日学習していない場合は昨日からチェック
+        if (!studiedToday) {
+            checkDate.setDate(checkDate.getDate() - 1);
+        }
+
+        while (true) {
+            const dateStr = checkDate.toISOString().split('T')[0];
+            if (studyDates.has(dateStr)) {
+                currentStreak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+
+        // 最長記録を取得（localStorageから）
+        const bestStreak = Math.max(
+            currentStreak,
+            parseInt(localStorage.getItem('sharoushi_best_streak') || '0')
+        );
+
+        // 最長記録を更新
+        if (currentStreak > parseInt(localStorage.getItem('sharoushi_best_streak') || '0')) {
+            localStorage.setItem('sharoushi_best_streak', currentStreak.toString());
+        }
+
+        return { current: currentStreak, best: bestStreak, studiedToday };
+    }
+
+    renderStreak() {
+        const container = document.getElementById('streakCard');
+        if (!container) return;
+
+        const streak = this.calculateStreak();
+        const fireEmoji = streak.current >= 7 ? '🔥🔥' : streak.current >= 3 ? '🔥' : '✨';
+
+        let message = '';
+        if (!streak.studiedToday) {
+            message = '今日はまだ学習していません';
+        } else if (streak.current >= 30) {
+            message = '素晴らしい！1ヶ月継続中！';
+        } else if (streak.current >= 7) {
+            message = '1週間継続達成！';
+        } else if (streak.current >= 3) {
+            message = '良い調子です！';
+        } else {
+            message = '今日も学習しました！';
+        }
+
+        container.innerHTML = `
+            <div class="streak-display">
+                <div class="streak-icon">${fireEmoji}</div>
+                <div class="streak-info">
+                    <div class="streak-count">${streak.current}<span class="streak-unit">日連続</span></div>
+                    <div class="streak-message">${message}</div>
+                </div>
+                <div class="streak-best">
+                    <div class="streak-best-label">最長記録</div>
+                    <div class="streak-best-value">${streak.best}日</div>
+                </div>
+            </div>
+        `;
     }
 
     renderAmendments() {
