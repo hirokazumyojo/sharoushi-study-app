@@ -293,49 +293,95 @@ const DEFAULT_TASKS = [
     { id: 3, title: '確認問題を解く', time: '30分', completed: false }
 ];
 
-// サンプル暗記カード
+// サンプル暗記カード（過去問ベース）
+// 全3,500問は設定画面からflashcards_import.jsonをインポート可能
 const SAMPLE_FLASHCARDS = [
     {
         id: 1,
-        subjectId: 'employment',
-        question: '雇用保険の基本手当の所定給付日数は何日から何日？',
-        answer: '被保険者期間と年齢により90日〜360日（特定受給資格者は最大330日）',
+        subjectId: 'labor_standard',
+        question: '【平成28年 問01-ア】\n労働基準法第1条は、労働保護法たる労働基準法の基本理念を宣明したものであって、本法各条の解釈にあたり基本観念として常に考慮されなければならない。',
+        answer: '正解: 正\n\n本問のとおりである（法1条、昭22.9.13発基17号）。\n法1条は訓示的規定であり、本条違反に対する罰則はない。',
         status: 'new',
         correctCount: 0,
         lastReviewed: null
     },
     {
         id: 2,
-        subjectId: 'pension_np',
-        question: '老齢基礎年金の受給資格期間は？',
-        answer: '10年（120月）以上の保険料納付済期間等が必要',
+        subjectId: 'labor_safety',
+        question: '【令和2年 問09-Ａ】\n労働安全衛生法は、同居の親族のみを使用する事業又は事務所については適用されない。また、家事使用人についても適用されない。',
+        answer: '正解: 正\n\n本問のとおりである(昭47.9.18発基91号)。',
         status: 'new',
         correctCount: 0,
         lastReviewed: null
     },
     {
         id: 3,
-        subjectId: 'health',
-        question: '健康保険の傷病手当金の支給期間は？',
-        answer: '支給開始日から通算して1年6か月',
+        subjectId: 'workers_comp',
+        question: '【平成30年 問04-オ】\n試みの使用期間中の者にも労災保険法は適用される。',
+        answer: '正解: 正\n\n本問のとおりである（法3条、労働基準法9条）。\n労災保険の適用労働者の範囲は、労働基準法9条に準じており、「適用事業に使用される者で、賃金を支払われるもの」とされている。',
         status: 'new',
         correctCount: 0,
         lastReviewed: null
     },
     {
         id: 4,
-        subjectId: 'labor_standard',
-        question: '労働基準法の法定労働時間は？',
-        answer: '1日8時間、1週40時間（特例事業場は44時間）',
+        subjectId: 'employment',
+        question: '【令和3年 問01-Ａ】\n雇用保険法における賃金とは、賃金、給料、手当、賞与その他名称のいかんを問わず、労働の対償として事業主が労働者に支払うものをいう。',
+        answer: '正解: 正\n\n本問のとおりである（法4条4項）。',
         status: 'new',
         correctCount: 0,
         lastReviewed: null
     },
     {
         id: 5,
-        subjectId: 'workers_comp',
-        question: '労災保険の休業補償給付の支給額は？',
-        answer: '給付基礎日額の60%（特別支給金20%と合わせて80%）',
+        subjectId: 'collection',
+        question: '【令和4年 問08-Ａ】\n労働保険徴収法における「賃金」とは、賃金、給料、手当、賞与その他名称のいかんを問わず、労働の対償として事業主が労働者に支払うすべてのものをいう。',
+        answer: '正解: 正\n\n本問のとおりである（法2条2項）。',
+        status: 'new',
+        correctCount: 0,
+        lastReviewed: null
+    },
+    {
+        id: 6,
+        subjectId: 'pension_np',
+        question: '【令和4年 問01-Ａ】\n国民年金法における「配偶者」には、婚姻の届出をしていないが、事実上婚姻関係と同様の事情にある者を含む。',
+        answer: '正解: 正\n\n本問のとおりである（法5条8項）。',
+        status: 'new',
+        correctCount: 0,
+        lastReviewed: null
+    },
+    {
+        id: 7,
+        subjectId: 'pension_ep',
+        question: '【令和4年 問01-Ａ】\n厚生年金保険法において「配偶者」、「夫」及び「妻」には、婚姻の届出をしていないが、事実上婚姻関係と同様の事情にある者を含む。',
+        answer: '正解: 正\n\n本問のとおりである（法3条2項）。',
+        status: 'new',
+        correctCount: 0,
+        lastReviewed: null
+    },
+    {
+        id: 8,
+        subjectId: 'labor_general',
+        question: '【令和4年 問05-Ａ】\n労働契約法第1条では、労働契約が合意により成立し、又は変更されるという合意の原則等労働契約に関する基本的事項を定めることにより、合理的な労働条件の決定又は変更が円滑に行われるようにすることを目的としている。',
+        answer: '正解: 正\n\n本問のとおりである（労働契約法1条）。',
+        status: 'new',
+        correctCount: 0,
+        lastReviewed: null
+    },
+    {
+        id: 9,
+        subjectId: 'social_general',
+        question: '【令和4年 問06-Ａ】\n介護保険法第1条では、加齢に伴って生ずる心身の変化に起因する疾病等により要介護状態となった者等について、これらの者が尊厳を保持し、その有する能力に応じ自立した日常生活を営むことができるよう、必要な保健医療サービス及び福祉サービスに係る給付を行うことを目的としている。',
+        answer: '正解: 正\n\n本問のとおりである（介護保険法1条）。',
+        status: 'new',
+        correctCount: 0,
+        lastReviewed: null
+    },
+    {
+        id: 10,
+        subjectId: 'health',
+        question: '【令和4年 問01-Ａ】\n健康保険法第1条では、労働者又はその被扶養者の業務災害以外の疾病、負傷若しくは死亡又は出産に関して保険給付を行い、もって国民の生活の安定と福祉の向上に寄与することを目的としている。',
+        answer: '正解: 正\n\n本問のとおりである（法1条）。',
         status: 'new',
         correctCount: 0,
         lastReviewed: null
