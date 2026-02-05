@@ -1670,17 +1670,6 @@ body {
     color: var(--gray-500);
 }
 
-.quiz-import {
-    margin-top: var(--spacing-md);
-}
-
-.import-hint {
-    font-size: 0.75rem;
-    color: var(--gray-500);
-    margin-top: var(--spacing-sm);
-    text-align: center;
-}
-
 .quiz-settings {
     display: flex;
     flex-direction: column;

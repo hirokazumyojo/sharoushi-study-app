@@ -335,14 +335,6 @@ class SharoushiApp {
         });
 
         // 過去問演習
-        document.getElementById('importCsvBtn')?.addEventListener('click', () => {
-            document.getElementById('csvFileInput').click();
-        });
-        document.getElementById('csvFileInput')?.addEventListener('change', (e) => {
-            if (e.target.files[0]) {
-                this.importCsvQuestions(e.target.files[0]);
-            }
-        });
         document.getElementById('startQuizBtn')?.addEventListener('click', () => this.startQuiz());
         document.getElementById('choiceCorrect')?.addEventListener('click', () => this.answerQuestion('正'));
         document.getElementById('choiceWrong')?.addEventListener('click', () => this.answerQuestion('誤'));
@@ -1689,77 +1681,6 @@ class SharoushiApp {
         } else {
             document.getElementById('quizAccuracy').textContent = '-';
         }
-    }
-
-    importCsvQuestions(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const csv = e.target.result;
-                const lines = csv.split('\n');
-                const headers = this.parseCsvLine(lines[0]);
-
-                const questions = [];
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-
-                    const values = this.parseCsvLine(lines[i]);
-                    const row = {};
-                    headers.forEach((h, idx) => {
-                        row[h] = values[idx] || '';
-                    });
-
-                    // CSVフォーマットに合わせてマッピング
-                    const question = {
-                        id: row.ID || Date.now() + i,
-                        subject: row.Subject || '不明',
-                        topic: row.Topic || '',
-                        question: row.Question || '',
-                        correct: row.Correct || '',
-                        notes: row.Notes || '',
-                        timesSeen: parseInt(row.TimesSeen) || 0,
-                        correctCount: parseInt(row.Streak) || 0,
-                        lastAnswered: row.LastAnswered || null,
-                        nextDue: row.NextDue || null,
-                        intervalDays: parseInt(row.IntervalDays) || 1
-                    };
-
-                    if (question.question) {
-                        questions.push(question);
-                    }
-                }
-
-                this.state.quizQuestions = questions;
-                this.setStorage(this.STORAGE_KEYS.quizQuestions, questions);
-                this.updateQuizStats();
-                this.populateQuizSubjectFilter();
-                alert(`${questions.length}問をインポートしました`);
-            } catch (error) {
-                console.error('CSV parse error:', error);
-                alert('CSVの読み込みに失敗しました');
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    parseCsvLine(line) {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
-
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (char === '"') {
-                inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-        result.push(current.trim());
-        return result;
     }
 
     startQuiz() {
