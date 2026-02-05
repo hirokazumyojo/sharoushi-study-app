@@ -146,6 +146,41 @@ function initAuth() {
         }
     });
 
+    // Googleログインボタン（ログイン画面）
+    document.getElementById('googleSignInBtn')?.addEventListener('click', async () => {
+        if (typeof firebaseSync === 'undefined') {
+            alert('Firebase設定が必要です。\n\n設定方法:\n1. Firebase Consoleでプロジェクト作成\n2. firebase-config.jsに設定を記入');
+            return;
+        }
+
+        try {
+            // Firebase初期化
+            await firebaseSync.initialize();
+            // Googleログイン
+            const user = await firebaseSync.signInWithGoogle();
+            if (user) {
+                // ログイン成功時、パスワードも自動設定してセッション作成
+                if (!auth.isPasswordSet()) {
+                    auth.setPassword('google_' + user.uid.substring(0, 8));
+                }
+                auth.createSession();
+                loginScreen.style.display = 'none';
+                appElement.style.display = 'block';
+                window.sharoushiApp = new SharoushiApp();
+                window.app = window.sharoushiApp;
+            }
+        } catch (error) {
+            console.error('Google sign-in error:', error);
+            if (error.code === 'auth/popup-closed-by-user') {
+                // ユーザーがキャンセル
+            } else if (error.code === 'auth/configuration-not-found' || !error.code) {
+                alert('Firebase設定が必要です。\n\nfirebase-config.jsに設定を記入してください。');
+            } else {
+                alert('ログインに失敗しました: ' + error.message);
+            }
+        }
+    });
+
     return false;
 }
 
@@ -265,6 +300,8 @@ class SharoushiApp {
     setStorage(key, value) {
         try {
             localStorage.setItem(key, JSON.stringify(value));
+            // データ変更時に自動同期をトリガー
+            this.triggerAutoSync();
         } catch (e) {
             console.error('Storage write error:', e);
         }
@@ -375,6 +412,183 @@ class SharoushiApp {
             }
         });
         document.getElementById('resetDataBtn')?.addEventListener('click', () => this.resetAllData());
+
+        // クラウド同期
+        document.getElementById('settingsGoogleSignIn')?.addEventListener('click', () => this.handleGoogleSignIn());
+        document.getElementById('syncNowBtn')?.addEventListener('click', () => this.syncNow());
+        document.getElementById('signOutBtn')?.addEventListener('click', () => this.handleSignOut());
+        document.getElementById('syncStatus')?.addEventListener('click', () => this.openSettings());
+
+        // Firebase同期の初期化
+        this.initFirebaseSync();
+    }
+
+    // ========================================
+    // Firebase同期
+    // ========================================
+    async initFirebaseSync() {
+        if (typeof firebaseSync === 'undefined') {
+            console.log('Firebase sync not available');
+            this.updateSyncUI(null);
+            return;
+        }
+
+        // Firebase初期化
+        const initialized = await firebaseSync.initialize();
+        if (!initialized) {
+            this.updateSyncUI(null);
+            return;
+        }
+
+        // 同期イベントリスナー
+        firebaseSync.addListener((event, data) => {
+            if (event === 'auth') {
+                this.updateSyncUI(data.user);
+                if (data.user) {
+                    // ログイン時にクラウドから同期
+                    firebaseSync.syncFromCloud().then(() => {
+                        location.reload(); // データ反映のためリロード
+                    });
+                }
+            } else if (event === 'sync') {
+                this.updateSyncStatusIcon(data.status);
+            }
+        });
+
+        // 初期状態を更新
+        const status = firebaseSync.getSyncStatus();
+        this.updateSyncUI(status.user);
+    }
+
+    updateSyncUI(user) {
+        const syncStatus = document.getElementById('syncStatus');
+        const syncUserInfo = document.getElementById('syncUserInfo');
+        const settingsGoogleSignIn = document.getElementById('settingsGoogleSignIn');
+        const syncNowBtn = document.getElementById('syncNowBtn');
+        const signOutBtn = document.getElementById('signOutBtn');
+        const syncHint = document.getElementById('syncHint');
+
+        if (user) {
+            // ログイン中
+            if (syncStatus) {
+                syncStatus.classList.add('synced');
+                syncStatus.classList.remove('disconnected');
+            }
+            document.getElementById('syncIcon').textContent = '☁';
+            document.getElementById('syncText').textContent = '';
+
+            if (syncUserInfo) {
+                syncUserInfo.style.display = 'flex';
+                document.getElementById('syncUserAvatar').src = user.photoURL || '';
+                document.getElementById('syncUserName').textContent = user.displayName || 'ユーザー';
+                document.getElementById('syncUserEmail').textContent = user.email || '';
+            }
+            if (settingsGoogleSignIn) settingsGoogleSignIn.style.display = 'none';
+            if (syncNowBtn) syncNowBtn.style.display = 'block';
+            if (signOutBtn) signOutBtn.style.display = 'block';
+            if (syncHint) syncHint.textContent = '最終同期: ' + new Date().toLocaleString('ja-JP');
+        } else {
+            // 未ログイン
+            if (syncStatus) {
+                syncStatus.classList.remove('synced');
+                syncStatus.classList.add('disconnected');
+            }
+            document.getElementById('syncIcon').textContent = '☁';
+            document.getElementById('syncText').textContent = '';
+
+            if (syncUserInfo) syncUserInfo.style.display = 'none';
+            if (settingsGoogleSignIn) settingsGoogleSignIn.style.display = 'flex';
+            if (syncNowBtn) syncNowBtn.style.display = 'none';
+            if (signOutBtn) signOutBtn.style.display = 'none';
+            if (syncHint) syncHint.textContent = 'Googleアカウントでログインすると、複数デバイス間でデータを同期できます';
+        }
+    }
+
+    updateSyncStatusIcon(status) {
+        const syncStatus = document.getElementById('syncStatus');
+        const syncIcon = document.getElementById('syncIcon');
+
+        if (!syncStatus || !syncIcon) return;
+
+        syncStatus.classList.remove('syncing', 'synced', 'error', 'disconnected');
+
+        switch (status) {
+            case 'syncing':
+                syncStatus.classList.add('syncing');
+                syncIcon.textContent = '🔄';
+                break;
+            case 'synced':
+                syncStatus.classList.add('synced');
+                syncIcon.textContent = '☁';
+                break;
+            case 'error':
+                syncStatus.classList.add('error');
+                syncIcon.textContent = '⚠';
+                break;
+            default:
+                syncStatus.classList.add('disconnected');
+                syncIcon.textContent = '☁';
+        }
+    }
+
+    async handleGoogleSignIn() {
+        if (typeof firebaseSync === 'undefined') {
+            alert('Firebase設定が必要です。\n\n設定方法:\n1. Firebase Consoleでプロジェクト作成\n2. firebase-config.jsに設定を記入');
+            return;
+        }
+
+        try {
+            await firebaseSync.signInWithGoogle();
+        } catch (error) {
+            console.error('Sign-in error:', error);
+            if (error.code === 'auth/popup-closed-by-user') {
+                // ユーザーがキャンセル
+            } else if (error.code === 'auth/configuration-not-found') {
+                alert('Firebase設定が必要です。\n\nfirebase-config.jsに設定を記入してください。');
+            } else {
+                alert('ログインに失敗しました: ' + error.message);
+            }
+        }
+    }
+
+    async handleSignOut() {
+        if (typeof firebaseSync === 'undefined') return;
+
+        if (confirm('ログアウトしますか？\nローカルのデータは保持されます。')) {
+            try {
+                await firebaseSync.signOut();
+                this.updateSyncUI(null);
+            } catch (error) {
+                console.error('Sign-out error:', error);
+                alert('ログアウトに失敗しました');
+            }
+        }
+    }
+
+    async syncNow() {
+        if (typeof firebaseSync === 'undefined') return;
+
+        try {
+            this.updateSyncStatusIcon('syncing');
+            await firebaseSync.syncToCloud();
+            const syncHint = document.getElementById('syncHint');
+            if (syncHint) syncHint.textContent = '最終同期: ' + new Date().toLocaleString('ja-JP');
+            alert('同期が完了しました');
+        } catch (error) {
+            console.error('Sync error:', error);
+            alert('同期に失敗しました: ' + error.message);
+        }
+    }
+
+    // データ変更時に自動同期をトリガー
+    triggerAutoSync() {
+        if (typeof firebaseSync !== 'undefined' && firebaseSync.syncEnabled) {
+            // デバウンス: 連続した変更をまとめる
+            clearTimeout(this.autoSyncTimeout);
+            this.autoSyncTimeout = setTimeout(() => {
+                firebaseSync.syncToCloud();
+            }, 5000); // 5秒後に同期
+        }
     }
 
     // ========================================
