@@ -1,0 +1,23 @@
+{
+  "timeZone": "Asia/Tokyo",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Chat",
+        "version": "v1",
+        "serviceId": "chat"
+      }
+    ]
+  },
+  "chat": {
+    "addToSpaceFallbackMessage": "社労士クイズBotが追加されました！毎朝8:30に3問出題します。"
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/chat.bot",
+    "https://www.googleapis.com/auth/chat.messages.create",
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.scriptapp"
+  ],
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8"
+}
