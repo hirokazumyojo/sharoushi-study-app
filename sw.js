@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'sharoushi-navi-v3';
+const CACHE_NAME = 'sharoushi-navi-v4';
 const urlsToCache = [
     './',
     './index.html',
@@ -7,6 +7,7 @@ const urlsToCache = [
     './app.js',
     './data.js',
     './manifest.json',
+    './questions.json',
     './kudo_project_schedule.ics'
 ];
 
@@ -23,10 +24,29 @@ self.addEventListener('install', event => {
 
 // リクエスト時にキャッシュから返す
 self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+
+    // questions.json は stale-while-revalidate（キャッシュを返しつつ裏で更新）
+    if (url.pathname.endsWith('/questions.json')) {
+        event.respondWith(
+            caches.open(CACHE_NAME).then(cache => {
+                return cache.match(event.request).then(cached => {
+                    const fetchPromise = fetch(event.request).then(networkResponse => {
+                        cache.put(event.request, networkResponse.clone());
+                        return networkResponse;
+                    }).catch(() => cached);
+
+                    return cached || fetchPromise;
+                });
+            })
+        );
+        return;
+    }
+
+    // その他はキャッシュ優先
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // キャッシュがあれば返す、なければネットワークから取得
                 if (response) {
                     return response;
                 }

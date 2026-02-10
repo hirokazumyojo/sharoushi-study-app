@@ -168,7 +168,8 @@ class SharoushiApp {
             audioFiles: 'sharoushi_audio_files',
             tasks: 'sharoushi_tasks',
             settings: 'sharoushi_settings',
-            quizQuestions: 'sharoushi_quiz_questions',
+            masterQuestions: 'sharoushi_master_questions',
+            quizProgress: 'sharoushi_quiz_progress',
             quizHistory: 'sharoushi_quiz_history'
         };
 
@@ -203,7 +204,8 @@ class SharoushiApp {
     // ========================================
     // 初期化
     // ========================================
-    init() {
+    async init() {
+        this.migrateQuizDataIfNeeded();
         this.loadData();
         this.initQuizState();
         this.initSettings();
@@ -212,10 +214,78 @@ class SharoushiApp {
         this.updateDateTime();
         setInterval(() => this.updateDateTime(), 60000);
 
+        // マスター問題データを非同期で取得
+        this.loadMasterQuestions();
+
         // リマインダーをスケジュール
         if (this.state.settings.reminderEnabled) {
             this.scheduleReminder();
         }
+    }
+
+    migrateQuizDataIfNeeded() {
+        const oldData = this.getStorage('sharoushi_quiz_questions');
+        const newProgress = this.getStorage(this.STORAGE_KEYS.quizProgress);
+
+        if (oldData && oldData.length > 0 && !newProgress) {
+            const progress = {};
+            oldData.forEach(q => {
+                if (q.timesSeen > 0 || q.correctCount > 0) {
+                    progress[q.id] = {
+                        timesSeen: q.timesSeen || 0,
+                        correctCount: q.correctCount || 0,
+                        lastAnswered: q.lastAnswered || null,
+                        nextDue: q.nextDue || null,
+                        intervalDays: q.intervalDays || 1
+                    };
+                }
+            });
+            this.setStorage(this.STORAGE_KEYS.quizProgress, progress);
+            localStorage.removeItem('sharoushi_quiz_questions');
+            console.log(`Migrated progress for ${Object.keys(progress).length} questions`);
+        }
+    }
+
+    async loadMasterQuestions() {
+        const cached = this.getStorage(this.STORAGE_KEYS.masterQuestions);
+
+        // キャッシュがあれば即座に表示
+        if (cached) {
+            this.mergeMasterWithProgress(cached);
+            this.populateQuizSubjectFilter();
+            this.updateQuizStats();
+        }
+
+        // バックグラウンドで最新データを取得
+        try {
+            const response = await fetch('./questions.json');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const freshData = await response.json();
+
+            if (!cached || cached.version !== freshData.version) {
+                this.setStorage(this.STORAGE_KEYS.masterQuestions, freshData);
+                this.mergeMasterWithProgress(freshData);
+                this.populateQuizSubjectFilter();
+                this.updateQuizStats();
+                console.log(`Questions updated: ${cached?.version || 'none'} -> ${freshData.version}`);
+            }
+        } catch (error) {
+            console.warn('Could not fetch master questions (offline?):', error.message);
+        }
+    }
+
+    mergeMasterWithProgress(masterData) {
+        const progress = this.getStorage(this.STORAGE_KEYS.quizProgress) || {};
+
+        this.state.quizQuestions = masterData.questions.map(q => ({
+            ...q,
+            timesSeen: progress[q.id]?.timesSeen || 0,
+            correctCount: progress[q.id]?.correctCount || 0,
+            lastAnswered: progress[q.id]?.lastAnswered || null,
+            nextDue: progress[q.id]?.nextDue || null,
+            intervalDays: progress[q.id]?.intervalDays || 1
+        }));
     }
 
     loadData() {
@@ -1643,7 +1713,13 @@ class SharoushiApp {
     // 過去問演習
     // ========================================
     initQuizState() {
-        this.state.quizQuestions = this.getStorage(this.STORAGE_KEYS.quizQuestions) || [];
+        // マスターデータとユーザー進捗をマージ
+        const masterData = this.getStorage(this.STORAGE_KEYS.masterQuestions);
+        if (masterData) {
+            this.mergeMasterWithProgress(masterData);
+        } else {
+            this.state.quizQuestions = [];
+        }
         this.state.quizHistory = this.getStorage(this.STORAGE_KEYS.quizHistory) || [];
         this.state.currentQuiz = {
             questions: [],
@@ -1712,19 +1788,15 @@ class SharoushiApp {
                         row[h] = values[idx] || '';
                     });
 
-                    // CSVフォーマットに合わせてマッピング
+                    // CSVフォーマットに合わせてマッピング（マスターデータのみ）
+                    const rawId = (row.ID || '').replace(/,/g, '');
                     const question = {
-                        id: row.ID || Date.now() + i,
+                        id: rawId && !isNaN(rawId) ? parseInt(rawId) : (Date.now() + i),
                         subject: row.Subject || '不明',
                         topic: row.Topic || '',
                         question: row.Question || '',
                         correct: row.Correct || '',
-                        notes: row.Notes || '',
-                        timesSeen: parseInt(row.TimesSeen) || 0,
-                        correctCount: parseInt(row.Streak) || 0,
-                        lastAnswered: row.LastAnswered || null,
-                        nextDue: row.NextDue || null,
-                        intervalDays: parseInt(row.IntervalDays) || 1
+                        notes: row.Notes || ''
                     };
 
                     if (question.question) {
@@ -1732,11 +1804,16 @@ class SharoushiApp {
                     }
                 }
 
-                this.state.quizQuestions = questions;
-                this.setStorage(this.STORAGE_KEYS.quizQuestions, questions);
+                // マスターデータとして保存（既存進捗は保持）
+                const masterData = {
+                    version: `csv-${new Date().toISOString()}`,
+                    questions: questions
+                };
+                this.setStorage(this.STORAGE_KEYS.masterQuestions, masterData);
+                this.mergeMasterWithProgress(masterData);
                 this.updateQuizStats();
                 this.populateQuizSubjectFilter();
-                alert(`${questions.length}問をインポートしました`);
+                alert(`${questions.length}問をインポートしました（学習進捗は保持されます）`);
             } catch (error) {
                 console.error('CSV parse error:', error);
                 alert('CSVの読み込みに失敗しました');
@@ -1865,7 +1942,16 @@ class SharoushiApp {
             nextDate.setDate(nextDate.getDate() + originalQ.intervalDays);
             originalQ.nextDue = nextDate.toISOString().split('T')[0];
 
-            this.setStorage(this.STORAGE_KEYS.quizQuestions, this.state.quizQuestions);
+            // 進捗のみを保存（マスターデータとは分離）
+            const progress = this.getStorage(this.STORAGE_KEYS.quizProgress) || {};
+            progress[originalQ.id] = {
+                timesSeen: originalQ.timesSeen,
+                correctCount: originalQ.correctCount,
+                lastAnswered: originalQ.lastAnswered,
+                nextDue: originalQ.nextDue,
+                intervalDays: originalQ.intervalDays
+            };
+            this.setStorage(this.STORAGE_KEYS.quizProgress, progress);
         }
 
         // 選択肢の表示更新
@@ -2060,7 +2146,7 @@ class SharoushiApp {
             studyRecords: this.state.studyRecords,
             subjectProgress: this.state.subjectProgress,
             flashcards: this.state.flashcards,
-            quizQuestions: this.state.quizQuestions,
+            quizProgress: this.getStorage(this.STORAGE_KEYS.quizProgress) || {},
             quizHistory: this.state.quizHistory,
             settings: this.state.settings,
             exportDate: new Date().toISOString()
@@ -2093,9 +2179,25 @@ class SharoushiApp {
                     this.state.flashcards = data.flashcards;
                     this.setStorage(this.STORAGE_KEYS.flashcards, data.flashcards);
                 }
-                if (data.quizQuestions) {
-                    this.state.quizQuestions = data.quizQuestions;
-                    this.setStorage(this.STORAGE_KEYS.quizQuestions, data.quizQuestions);
+                // 新形式: quizProgress（進捗のみ）
+                if (data.quizProgress) {
+                    this.setStorage(this.STORAGE_KEYS.quizProgress, data.quizProgress);
+                }
+                // 旧形式: quizQuestions（問題+進捗混在）→ 進捗のみ抽出して移行
+                if (data.quizQuestions && !data.quizProgress) {
+                    const progress = {};
+                    data.quizQuestions.forEach(q => {
+                        if (q.timesSeen > 0 || q.correctCount > 0) {
+                            progress[q.id] = {
+                                timesSeen: q.timesSeen || 0,
+                                correctCount: q.correctCount || 0,
+                                lastAnswered: q.lastAnswered || null,
+                                nextDue: q.nextDue || null,
+                                intervalDays: q.intervalDays || 1
+                            };
+                        }
+                    });
+                    this.setStorage(this.STORAGE_KEYS.quizProgress, progress);
                 }
                 if (data.quizHistory) {
                     this.state.quizHistory = data.quizHistory;
