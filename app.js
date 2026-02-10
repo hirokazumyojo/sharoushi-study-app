@@ -375,6 +375,9 @@ class SharoushiApp {
             }
         });
         document.getElementById('resetDataBtn')?.addEventListener('click', () => this.resetAllData());
+
+        // Googleカレンダー登録（ICSダウンロード）
+        document.getElementById('downloadIcsBtn')?.addEventListener('click', () => this.downloadIcsFile());
     }
 
     // ========================================
@@ -2043,6 +2046,13 @@ class SharoushiApp {
                 icon: 'icons/icon-192.svg'
             });
         }
+    }
+
+    downloadIcsFile() {
+        const a = document.createElement('a');
+        a.href = 'kudo_project_schedule.ics';
+        a.download = 'kudo_project_schedule.ics';
+        a.click();
     }
 
     exportAllData() {

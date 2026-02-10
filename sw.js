@@ -1,12 +1,13 @@
 // Service Worker for PWA
-const CACHE_NAME = 'sharoushi-navi-v2';
+const CACHE_NAME = 'sharoushi-navi-v3';
 const urlsToCache = [
     './',
     './index.html',
     './styles.css',
     './app.js',
     './data.js',
-    './manifest.json'
+    './manifest.json',
+    './kudo_project_schedule.ics'
 ];
 
 // インストール時にキャッシュ
