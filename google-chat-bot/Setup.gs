@@ -1,23 +1,21 @@
 // =====================================================
-// セットアップユーティリティ
+// セットアップユーティリティ（Webhook方式）
 // =====================================================
 
 /**
- * Chat Space IDを設定
- * Chat URLの spaces/ 以降の部分を指定
- * 例: https://mail.google.com/chat/#chat/space/AAAA_BBBBBB → 'AAAA_BBBBBB'
+ * Webhook URLを設定
+ * Google Chat スペース → アプリとインテグレーション → Webhook を管理 で取得したURLを貼り付け
  */
-function setSpaceId() {
-  const spaceId = 'YOUR_SPACE_ID_HERE'; // ← ここを書き換えて実行
-  PropertiesService.getScriptProperties().setProperty('CHAT_SPACE_ID', spaceId);
-  console.log('Space ID を設定しました: ' + spaceId);
+function setWebhookUrl() {
+  const url = 'YOUR_WEBHOOK_URL_HERE'; // ← ここにWebhook URLを貼り付けて実行
+  PropertiesService.getScriptProperties().setProperty('WEBHOOK_URL', url);
+  console.log('Webhook URL を設定しました');
 }
 
 /**
  * 毎朝8:30 JSTのトリガーを設定
  */
 function createDailyTrigger() {
-  // 既存のトリガーを削除（重複防止）
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
     if (trigger.getHandlerFunction() === 'sendDailyQuiz') {
       ScriptApp.deleteTrigger(trigger);
@@ -50,12 +48,12 @@ function deleteDailyTrigger() {
 }
 
 /**
- * テスト送信（1問だけ送信）
+ * テスト送信（1問だけ）
  */
 function testSendOneQuestion() {
-  const spaceId = PropertiesService.getScriptProperties().getProperty('CHAT_SPACE_ID');
-  if (!spaceId) {
-    console.error('Space IDが未設定です。setSpaceId()を実行してください。');
+  const webhookUrl = PropertiesService.getScriptProperties().getProperty('WEBHOOK_URL');
+  if (!webhookUrl) {
+    console.error('Webhook URLが未設定です。setWebhookUrl()を実行してください。');
     return;
   }
 
@@ -65,18 +63,21 @@ function testSendOneQuestion() {
     return;
   }
 
-  Chat.Spaces.Messages.create(
-    buildQuestionCard_(questions[0], 1),
-    'spaces/' + spaceId
-  );
-  console.log('テスト送信成功');
+  // 問題送信
+  sendWebhook_(webhookUrl, buildQuestionCard_(questions[0], 1));
+  console.log('問題を送信しました。15秒後に正解を送信します...');
+
+  // 15秒後に正解送信
+  Utilities.sleep(15000);
+  sendWebhook_(webhookUrl, buildAnswerCard_(questions[0], 1));
+  console.log('正解を送信しました');
 }
 
 /**
  * 送信済み問題をリセット
  */
 function resetSentQuestions() {
-  PropertiesService.getScriptProperties().deleteProperty(SENT_IDS_KEY);
+  PropertiesService.getScriptProperties().deleteProperty('SENT_QUESTION_IDS');
   console.log('送信済み問題をリセットしました。全問が再出題可能です。');
 }
 
@@ -85,12 +86,12 @@ function resetSentQuestions() {
  */
 function showStatus() {
   const props = PropertiesService.getScriptProperties();
-  const spaceId = props.getProperty('CHAT_SPACE_ID');
-  const sentIdsStr = props.getProperty(SENT_IDS_KEY) || '';
+  const hasWebhook = !!props.getProperty('WEBHOOK_URL');
+  const sentIdsStr = props.getProperty('SENT_QUESTION_IDS') || '';
   const sentCount = sentIdsStr ? sentIdsStr.split(',').length : 0;
 
   console.log('=== 設定状況 ===');
-  console.log('Space ID: ' + (spaceId || '未設定'));
+  console.log('Webhook URL: ' + (hasWebhook ? '設定済み' : '未設定'));
   console.log('送信済み問題数: ' + sentCount + ' / 3500');
   console.log('残り問題数: ' + (3500 - sentCount));
 
